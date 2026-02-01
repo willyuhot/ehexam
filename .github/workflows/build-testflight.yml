@@ -111,7 +111,7 @@ jobs:
           retention-days: 30
       
       - name: Upload to TestFlight (Optional)
-        if: ${{ secrets.APP_STORE_CONNECT_API_KEY != '' }}
+        if: secrets.APP_STORE_CONNECT_API_KEY != ''
         run: |
           # 如果需要自动上传，可以使用 fastlane 或 xcrun altool
           echo "📤 IPA 已准备好，可以手动上传到 TestFlight"
