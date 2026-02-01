@@ -1,0 +1,118 @@
+name: Build TestFlight IPA
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - master
+    tags:
+      - 'v*'
+
+env:
+  DEVELOPMENT_TEAM: ${{ secrets.DEVELOPMENT_TEAM }}
+  BUNDLE_ID: com.ehexam.EHExam.yuhuahuan.1769935853
+
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 60
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '16.2'
+      
+      - name: Verify Xcode version
+        run: |
+          xcodebuild -version
+          xcodebuild -showsdks | grep -i ios
+      
+      - name: Install xcodegen
+        run: |
+          if ! command -v xcodegen &> /dev/null; then
+            brew install xcodegen
+          fi
+          xcodegen --version
+      
+      - name: Generate Xcode project
+        run: |
+          cd ${{ github.workspace }}
+          xcodegen generate
+          # Fix project format for compatibility
+          sed -i '' 's/objectVersion = 77/objectVersion = 54/g' EHExam.xcodeproj/project.pbxproj 2>/dev/null || true
+          sed -i '' 's/compatibilityVersion = "Xcode 16.0"/compatibilityVersion = "Xcode 14.0"/g' EHExam.xcodeproj/project.pbxproj 2>/dev/null || true
+      
+      - name: Build Archive
+        run: |
+          cd ${{ github.workspace }}
+          xcodebuild clean archive \
+            -project EHExam.xcodeproj \
+            -scheme EHExam \
+            -configuration Release \
+            -archivePath ./build/EHExam.xcarchive \
+            -sdk iphoneos \
+            CODE_SIGN_STYLE=Automatic \
+            DEVELOPMENT_TEAM="${{ secrets.DEVELOPMENT_TEAM }}" \
+            PROVISIONING_PROFILE_SPECIFIER="" \
+            -allowProvisioningUpdates
+      
+      - name: Export IPA
+        run: |
+          cd ${{ github.workspace }}
+          cat > ExportOptions.plist << EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+              <key>method</key>
+              <string>app-store</string>
+              <key>teamID</key>
+              <string>${{ secrets.DEVELOPMENT_TEAM }}</string>
+              <key>uploadBitcode</key>
+              <false/>
+              <key>uploadSymbols</key>
+              <true/>
+              <key>compileBitcode</key>
+              <false/>
+              <key>signingStyle</key>
+              <string>automatic</string>
+          </dict>
+          </plist>
+          EOF
+          
+          xcodebuild -exportArchive \
+            -archivePath ./build/EHExam.xcarchive \
+            -exportPath ./build/export \
+            -exportOptionsPlist ExportOptions.plist \
+            -allowProvisioningUpdates
+      
+      - name: Find IPA file
+        id: find-ipa
+        run: |
+          IPA_FILE=$(find ./build/export -name "*.ipa" | head -1)
+          if [ -z "$IPA_FILE" ]; then
+            echo "❌ IPA file not found"
+            exit 1
+          fi
+          echo "ipa_path=$IPA_FILE" >> $GITHUB_OUTPUT
+          echo "✅ Found IPA: $IPA_FILE"
+          ls -lh "$IPA_FILE"
+      
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: EHExam-IPA
+          path: ${{ steps.find-ipa.outputs.ipa_path }}
+          retention-days: 30
+      
+      - name: Upload to TestFlight (Optional)
+        if: ${{ secrets.APP_STORE_CONNECT_API_KEY != '' }}
+        run: |
+          # 如果需要自动上传，可以使用 fastlane 或 xcrun altool
+          echo "📤 IPA 已准备好，可以手动上传到 TestFlight"
+          echo "或配置 API Key 后自动上传"

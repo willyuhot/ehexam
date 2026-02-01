@@ -1,0 +1,47 @@
+# Xcode
+build/
+*.ipa
+*.xcarchive
+*.xcuserdata
+*.xcworkspace
+DerivedData/
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Xcode project files
+project.pbxproj
+project.xcworkspace/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Backup files
+*.bak
+*.swp
+*~
+
+# Temporary files
+*.tmp
+*.log
+
+# Secrets and keys
+*.p8
+*.mobileprovision
+ExportOptions.plist
+
+# Scripts (keep in repo but exclude from build)
+create_icon_image.swift
+create_open_book_icon.swift
+create_book_icon.py
+*.sh
+!build_for_testflight.sh
+!upload_to_testflight.sh
+!cleanup_project.sh
+!fix_xcode_version.sh
+
+# Resources (keep icon source)
+icon_1024.png

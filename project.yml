@@ -1,0 +1,126 @@
+name: EHExam
+options:
+  bundleIdPrefix: com.ehexam
+  deploymentTarget:
+    iOS: "15.0"
+  developmentLanguage: en
+  xcodeVersion: "15.0"
+  projectVersion: "15.0"
+  compatibilityVersion: "Xcode 15.0"
+  usesTabs: false
+  indentWidth: 2
+  tabWidth: 2
+  groupSortPosition: top
+  generateEmptyDirectories: true
+
+packages: {}
+
+targets:
+  # 正序版本
+  EHExam:
+    type: application
+    platform: iOS
+    deploymentTarget: "15.0"
+    sources:
+      - path: .
+        excludes:
+          - "*.md"
+          - "*.sh"
+          - ".gitignore"
+          - "project.yml"
+          - "build"
+          - "*.xcodeproj"
+          - "*.xcworkspace"
+    resources:
+      - resources/part.txt
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.ehexam.EHExam.yuhuahuan.1769935853
+        PRODUCT_NAME: EHExam
+        SWIFT_VERSION: "5.0"
+        TARGETED_DEVICE_FAMILY: "1" # iPhone only
+        INFOPLIST_FILE: Info.plist
+        INFOPLIST_KEY_UIApplicationSceneManifest_Generation: "YES"
+        INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents: "YES"
+        INFOPLIST_KEY_UILaunchScreen_Generation: "YES"
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: ""
+        SWIFT_ACTIVE_COMPILATION_CONDITIONS: "" # 正序版本，不启用SHUFFLE_ENABLED
+    info:
+      path: Info.plist
+      properties:
+        CFBundleDevelopmentRegion: en
+        CFBundleDisplayName: EHExam
+        CFBundleExecutable: $(EXECUTABLE_NAME)
+        CFBundleIdentifier: $(PRODUCT_BUNDLE_IDENTIFIER)
+        CFBundleInfoDictionaryVersion: "6.0"
+        CFBundleName: $(PRODUCT_NAME)
+        CFBundlePackageType: $(PRODUCT_BUNDLE_PACKAGE_TYPE)
+        CFBundleShortVersionString: "1.0"
+        CFBundleVersion: "1"
+
+  # 乱序版本
+  EHExamShuffled:
+    type: application
+    platform: iOS
+    deploymentTarget: "15.0"
+    sources:
+      - path: .
+        excludes:
+          - "*.md"
+          - "*.sh"
+          - ".gitignore"
+          - "project.yml"
+          - "build"
+          - "*.xcodeproj"
+          - "*.xcworkspace"
+    resources:
+      - resources/part.txt
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.ehexam.EHExamShuffled
+        PRODUCT_NAME: EHExamShuffled
+        SWIFT_VERSION: "5.0"
+        TARGETED_DEVICE_FAMILY: "1" # iPhone only
+        INFOPLIST_FILE: Info.plist
+        INFOPLIST_KEY_UIApplicationSceneManifest_Generation: "YES"
+        INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents: "YES"
+        INFOPLIST_KEY_UILaunchScreen_Generation: "YES"
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: ""
+        SWIFT_ACTIVE_COMPILATION_CONDITIONS: "SHUFFLE_ENABLED" # 乱序版本，启用SHUFFLE_ENABLED
+    info:
+      path: Info.plist
+      properties:
+        CFBundleDevelopmentRegion: en
+        CFBundleDisplayName: EHExam乱序版
+        CFBundleExecutable: $(EXECUTABLE_NAME)
+        CFBundleIdentifier: $(PRODUCT_BUNDLE_IDENTIFIER)
+        CFBundleInfoDictionaryVersion: "6.0"
+        CFBundleName: $(PRODUCT_NAME)
+        CFBundlePackageType: $(PRODUCT_BUNDLE_PACKAGE_TYPE)
+        CFBundleShortVersionString: "1.0"
+        CFBundleVersion: "1"
+
+schemes:
+  EHExam:
+    build:
+      targets:
+        EHExam: all
+    run:
+      config: Debug
+    archive:
+      config: Release
+  
+  EHExamShuffled:
+    build:
+      targets:
+        EHExamShuffled: all
+    run:
+      config: Debug
+    archive:
+      config: Release
