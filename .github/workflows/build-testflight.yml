@@ -47,9 +47,29 @@ jobs:
           sed -i '' 's/objectVersion = 77/objectVersion = 54/g' EHExam.xcodeproj/project.pbxproj 2>/dev/null || true
           sed -i '' 's/compatibilityVersion = "Xcode 16.0"/compatibilityVersion = "Xcode 14.0"/g' EHExam.xcodeproj/project.pbxproj 2>/dev/null || true
       
+      - name: Setup App Store Connect API Key
+        if: ${{ secrets.APP_STORE_CONNECT_API_KEY != '' && secrets.APP_STORE_CONNECT_ISSUER_ID != '' && secrets.APP_STORE_CONNECT_API_KEY_CONTENT != '' }}
+        run: |
+          # 创建 API Key 文件
+          mkdir -p ~/private_keys
+          echo "${{ secrets.APP_STORE_CONNECT_API_KEY_CONTENT }}" > ~/private_keys/AuthKey_${{ secrets.APP_STORE_CONNECT_API_KEY }}.p8
+          chmod 600 ~/private_keys/AuthKey_${{ secrets.APP_STORE_CONNECT_API_KEY }}.p8
+          echo "✅ API Key 已配置"
+      
       - name: Build Archive
         run: |
           cd ${{ github.workspace }}
+          
+          if [ -z "${{ secrets.DEVELOPMENT_TEAM }}" ]; then
+            echo "❌ 错误: DEVELOPMENT_TEAM Secret 未配置"
+            exit 1
+          fi
+          
+          echo "🔨 开始构建 Archive..."
+          echo "Team ID: ${{ secrets.DEVELOPMENT_TEAM }}"
+          echo "Bundle ID: ${{ env.BUNDLE_ID }}"
+          
+          # 构建 Archive（使用自动签名）
           xcodebuild clean archive \
             -project EHExam.xcodeproj \
             -scheme EHExam \
@@ -64,6 +84,20 @@ jobs:
       - name: Export IPA
         run: |
           cd ${{ github.workspace }}
+          
+          # 如果配置了 API Key，使用 API Key 签名
+          if [ -n "${{ secrets.APP_STORE_CONNECT_API_KEY }}" ] && [ -n "${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}" ]; then
+            echo "📝 使用 API Key 签名..."
+            SIGNING_STYLE="automatic"
+            API_KEY_PATH=""
+            if [ -f ~/private_keys/AuthKey_${{ secrets.APP_STORE_CONNECT_API_KEY }}.p8 ]; then
+              API_KEY_PATH=~/private_keys/AuthKey_${{ secrets.APP_STORE_CONNECT_API_KEY }}.p8
+            fi
+          else
+            echo "📝 使用自动签名..."
+            SIGNING_STYLE="automatic"
+          fi
+          
           cat > ExportOptions.plist << EOF
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -80,7 +114,7 @@ jobs:
               <key>compileBitcode</key>
               <false/>
               <key>signingStyle</key>
-              <string>automatic</string>
+              <string>$SIGNING_STYLE</string>
           </dict>
           </plist>
           EOF
