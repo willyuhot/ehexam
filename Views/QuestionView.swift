@@ -55,15 +55,18 @@ struct QuestionView: View {
     @State private var showAnswerSheet = false
     
     var body: some View {
-        ZStack {
-            // 背景色必须填充整个屏幕
-            Color(.systemBackground)
-                .ignoresSafeArea(.all, edges: .all)
+        GeometryReader { geometry in
+            let isLargeScreen = geometry.size.width > 430 // iPhone Pro Max 宽度约 430pt
             
-            NavigationView {
-                ZStack {
-                    // 内容背景（透明，让外层背景显示）
-                    Color.clear
+            ZStack {
+                // 背景色填充整个屏幕（包括安全区域外）
+                Color(.systemBackground)
+                    .ignoresSafeArea(.all, edges: .all)
+                
+                NavigationView {
+                    ZStack {
+                        // 内容背景（透明，让外层背景显示）
+                        Color.clear
                     
                     Group {
                         if viewModel.isLoading {
@@ -86,18 +89,18 @@ struct QuestionView: View {
                     .padding()
                 } else if let question = viewModel.currentQuestion {
                     ScrollView(.vertical, showsIndicators: false) {
-                        VStack(alignment: .leading, spacing: 24) {
+                        VStack(alignment: .leading, spacing: isLargeScreen ? 28 : 24) {
                             // Logo和题号区域
                             HStack(spacing: 16) {
                                 // Logo
-                                AppLogoView(size: 60)
+                                AppLogoView(size: isLargeScreen ? 70 : 60)
                                 
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text(question.questionNumber)
-                                        .font(.title3)
+                                        .font(isLargeScreen ? .title2 : .title3)
                                         .fontWeight(.bold)
                                     Text("英语考试练习")
-                                        .font(.subheadline)
+                                        .font(isLargeScreen ? .body : .subheadline)
                                         .foregroundColor(.secondary)
                                 }
                                 
@@ -109,17 +112,17 @@ struct QuestionView: View {
                                 }) {
                                     Image(systemName: viewModel.isFavorite ? "star.fill" : "star")
                                         .foregroundColor(viewModel.isFavorite ? .yellow : .secondary)
-                                        .font(.title3)
+                                        .font(isLargeScreen ? .title2 : .title3)
                                         .frame(width: 44, height: 44) // iOS 标准触摸目标
                                 }
                             }
-                            .padding(.horizontal, 16)
-                            .padding(.top, 16)
+                            .padding(.horizontal, isLargeScreen ? 24 : 16)
+                            .padding(.top, isLargeScreen ? 20 : 16)
                             
                             // 答案结果提示（选择答案后立即显示）
                             if let result = viewModel.answerResult {
                                 AnswerResultView(result: result)
-                                    .padding(.horizontal, 16)
+                                    .padding(.horizontal, isLargeScreen ? 24 : 16)
                                     .transition(.move(edge: .top).combined(with: .opacity))
                             }
                             
@@ -127,7 +130,7 @@ struct QuestionView: View {
                             VStack(alignment: .leading, spacing: 12) {
                                 HStack {
                                     Text("原题")
-                                        .font(.headline)
+                                        .font(isLargeScreen ? .title3 : .headline)
                                         .foregroundColor(.accentColor)
                                     Spacer()
                                     if viewModel.showAnswer && viewModel.isTranslating {
@@ -139,8 +142,8 @@ struct QuestionView: View {
                                 VStack(alignment: .leading, spacing: 12) {
                                     // 英文原题（确保解码URL编码）
                                     Text(decodeURLEncoding(question.questionText))
-                                        .font(.body)
-                                        .lineSpacing(6)
+                                        .font(isLargeScreen ? .title3 : .body)
+                                        .lineSpacing(isLargeScreen ? 8 : 6)
                                         .foregroundColor(.primary)
                                     
                                     // 中文翻译（优先显示翻译结果，如果翻译失败则显示原始译文）
@@ -163,24 +166,24 @@ struct QuestionView: View {
                                         }()
                                         
                                         Text(translationText)
-                                            .font(.subheadline)
-                                            .lineSpacing(4)
+                                            .font(isLargeScreen ? .body : .subheadline)
+                                            .lineSpacing(isLargeScreen ? 6 : 4)
                                             .foregroundColor(.secondary)
                                             .padding(.top, 4)
                                     }
                                 }
-                                .padding(16)
+                                .padding(isLargeScreen ? 20 : 16)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .background(Color(.systemGray6))
                                 .cornerRadius(12)
                             }
-                            .padding(.horizontal, 16)
+                            .padding(.horizontal, isLargeScreen ? 24 : 16)
                             
                             // 选项
-                            VStack(alignment: .leading, spacing: 16) {
+                            VStack(alignment: .leading, spacing: isLargeScreen ? 20 : 16) {
                                 HStack {
                                     Text("选项")
-                                        .font(.headline)
+                                        .font(isLargeScreen ? .title3 : .headline)
                                         .foregroundColor(.accentColor)
                                     Spacer()
                                     if viewModel.showAnswer && viewModel.isTranslating {
@@ -207,7 +210,7 @@ struct QuestionView: View {
                                     }
                                 }
                             }
-                            .padding(.horizontal, 16)
+                            .padding(.horizontal, isLargeScreen ? 24 : 16)
                             
                             // 答案和解析（显示时）
                             if viewModel.showAnswer {
@@ -215,11 +218,11 @@ struct QuestionView: View {
                                     question: question,
                                     correctAnswer: viewModel.currentCorrectAnswer ?? question.correctAnswer
                                 )
-                                    .padding(.horizontal, 16)
+                                    .padding(.horizontal, isLargeScreen ? 24 : 16)
                             }
                             
                             // 按钮区域 - 使用标准 iOS 按钮样式
-                            VStack(spacing: 12) {
+                            VStack(spacing: isLargeScreen ? 16 : 12) {
                                 // 导航按钮
                                 HStack(spacing: 12) {
                                     // 上一题
@@ -303,16 +306,15 @@ struct QuestionView: View {
                                     }
                                 }
                             }
-                            .padding(.horizontal, 16)
+                            .padding(.horizontal, isLargeScreen ? 24 : 16)
                             .padding(.top, 8)
-                            .padding(.bottom, 24)
+                            .padding(.bottom, isLargeScreen ? 32 : 24)
                         }
                         .padding(.top, 8)
-                        .padding(.bottom, 20)
+                        .padding(.bottom, isLargeScreen ? 28 : 20)
                     }
                     .frame(maxWidth: .infinity)
                     .navigationBarTitleDisplayMode(.inline)
-                    .ignoresSafeArea(.keyboard, edges: .bottom)
                     .toolbar {
                         ToolbarItem(placement: .principal) {
                             HStack(spacing: 8) {
@@ -333,7 +335,6 @@ struct QuestionView: View {
             }
             .navigationViewStyle(StackNavigationViewStyle())
         }
-        .ignoresSafeArea(.all, edges: .all)
     }
 }
 

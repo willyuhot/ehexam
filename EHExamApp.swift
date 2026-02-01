@@ -13,8 +13,6 @@ struct EHExamApp: App {
         WindowGroup {
             ContentView()
                 .preferredColorScheme(.light) // 固定为浅色模式，适配更好
-                .background(Color(.systemBackground))
-                .ignoresSafeArea(.all, edges: .all)
         }
     }
 }

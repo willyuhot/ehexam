@@ -12,10 +12,11 @@ struct ContentView: View {
     
     var body: some View {
         ZStack {
-            // 背景色必须在最外层，完全填充
+            // 背景色填充整个屏幕（包括安全区域外）
             Color(.systemBackground)
                 .ignoresSafeArea(.all, edges: .all)
             
+            // 内容在安全区域内
             TabView {
                 QuestionView()
                     .environmentObject(viewModel)
@@ -43,6 +44,5 @@ struct ContentView: View {
             }
             .accentColor(.blue)
         }
-        .ignoresSafeArea(.all, edges: .all)
     }
 }
