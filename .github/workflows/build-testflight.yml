@@ -110,9 +110,8 @@ jobs:
           path: ${{ steps.find-ipa.outputs.ipa_path }}
           retention-days: 30
       
-      - name: Upload to TestFlight (Optional)
-        if: secrets.APP_STORE_CONNECT_API_KEY != ''
+      - name: Build complete
         run: |
-          # 如果需要自动上传，可以使用 fastlane 或 xcrun altool
-          echo "📤 IPA 已准备好，可以手动上传到 TestFlight"
-          echo "或配置 API Key 后自动上传"
+          echo "✅ IPA 构建完成！"
+          echo "📥 可以在 Actions 页面下载 IPA 文件"
+          echo "📤 使用 Transporter 应用上传到 TestFlight"
