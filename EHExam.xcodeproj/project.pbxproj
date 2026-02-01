@@ -1,0 +1,623 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 60;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		BF0010010000000000000001 /* EHExamApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = RF0010010000000000000001 /* EHExamApp.swift */; };
+		BF0010020000000000000001 /* Question.swift in Sources */ = {isa = PBXBuildFile; fileRef = RF0010020000000000000001 /* Question.swift */; };
+		BF0010030000000000000001 /* ExamParserService.swift in Sources */ = {isa = PBXBuildFile; fileRef = RF0010030000000000000001 /* ExamParserService.swift */; };
+		BF0010040000000000000001 /* QuestionParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = RF0010040000000000000001 /* QuestionParser.swift */; };
+		BF0010050000000000000001 /* SettingsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = RF0010050000000000000001 /* SettingsService.swift */; };
+		BF0010060000000000000001 /* StorageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = RF0010060000000000000001 /* StorageService.swift */; };
+		BF0010070000000000000001 /* TranslationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = RF0010070000000000000001 /* TranslationService.swift */; };
+		BF0010080000000000000001 /* QuestionViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = RF0010080000000000000001 /* QuestionViewModel.swift */; };
+		BF0010090000000000000001 /* AnswerDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = RF0010090000000000000001 /* AnswerDetailView.swift */; };
+		BF00100A0000000000000001 /* AppLogoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = RF00100A0000000000000001 /* AppLogoView.swift */; };
+		BF00100B0000000000000001 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = RF00100B0000000000000001 /* ContentView.swift */; };
+		BF00100C0000000000000001 /* FavoriteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = RF00100C0000000000000001 /* FavoriteView.swift */; };
+		BF00100D0000000000000001 /* LaunchScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = RF00100D0000000000000001 /* LaunchScreen.swift */; };
+		BF00100E0000000000000001 /* QuestionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = RF00100E0000000000000001 /* QuestionView.swift */; };
+		BF00100F0000000000000001 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = RF00100F0000000000000001 /* SettingsView.swift */; };
+		BF0010100000000000000001 /* WrongAnswerBookView.swift in Sources */ = {isa = PBXBuildFile; fileRef = RF0010100000000000000001 /* WrongAnswerBookView.swift */; };
+		BF0010300000000000000001 /* SpeechService.swift in Sources */ = {isa = PBXBuildFile; fileRef = RF0010300000000000000001 /* SpeechService.swift */; };
+		BF0010310000000000000001 /* DeepSeekParseService.swift in Sources */ = {isa = PBXBuildFile; fileRef = RF0010310000000000000001 /* DeepSeekParseService.swift */; };
+		BF00103E0000000000000001 /* ProcessingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = RF00103E0000000000000001 /* ProcessingService.swift */; };
+		BF0010320000000000000001 /* SelectableTextWithMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = RF0010320000000000000001 /* SelectableTextWithMenu.swift */; };
+		BF0010330000000000000001 /* WordBookView.swift in Sources */ = {isa = PBXBuildFile; fileRef = RF0010330000000000000001 /* WordBookView.swift */; };
+		BF0010380000000000000001 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = RF0010380000000000000001 /* HomeView.swift */; };
+		BF00103A0000000000000001 /* AppLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = RF00103A0000000000000001 /* AppLayout.swift */; };
+		BF00103C0000000000000001 /* ParsedWord.swift in Sources */ = {isa = PBXBuildFile; fileRef = RF00103C0000000000000001 /* ParsedWord.swift */; };
+		BF00103D0000000000000001 /* CustomWordBookView.swift in Sources */ = {isa = PBXBuildFile; fileRef = RF00103D0000000000000001 /* CustomWordBookView.swift */; };
+		BF0010110000000000000001 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = RF0010110000000000000001 /* Assets.xcassets */; };
+		BF0010120000000000000001 /* part.txt in Resources */ = {isa = PBXBuildFile; fileRef = RF0010120000000000000001 /* part.txt */; };
+		BF0010130000000000000002 /* EHExamApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = RF0010010000000000000001 /* EHExamApp.swift */; };
+		BF0010140000000000000002 /* Question.swift in Sources */ = {isa = PBXBuildFile; fileRef = RF0010020000000000000001 /* Question.swift */; };
+		BF0010150000000000000002 /* ExamParserService.swift in Sources */ = {isa = PBXBuildFile; fileRef = RF0010030000000000000001 /* ExamParserService.swift */; };
+		BF0010160000000000000002 /* QuestionParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = RF0010040000000000000001 /* QuestionParser.swift */; };
+		BF0010170000000000000002 /* SettingsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = RF0010050000000000000001 /* SettingsService.swift */; };
+		BF0010180000000000000002 /* StorageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = RF0010060000000000000001 /* StorageService.swift */; };
+		BF0010190000000000000002 /* TranslationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = RF0010070000000000000001 /* TranslationService.swift */; };
+		BF00101A0000000000000002 /* QuestionViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = RF0010080000000000000001 /* QuestionViewModel.swift */; };
+		BF00101B0000000000000002 /* AnswerDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = RF0010090000000000000001 /* AnswerDetailView.swift */; };
+		BF00101C0000000000000002 /* AppLogoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = RF00100A0000000000000001 /* AppLogoView.swift */; };
+		BF00101D0000000000000002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = RF00100B0000000000000001 /* ContentView.swift */; };
+		BF00101E0000000000000002 /* FavoriteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = RF00100C0000000000000001 /* FavoriteView.swift */; };
+		BF00101F0000000000000002 /* LaunchScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = RF00100D0000000000000001 /* LaunchScreen.swift */; };
+		BF0010200000000000000002 /* QuestionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = RF00100E0000000000000001 /* QuestionView.swift */; };
+		BF0010210000000000000002 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = RF00100F0000000000000001 /* SettingsView.swift */; };
+		BF0010220000000000000002 /* WrongAnswerBookView.swift in Sources */ = {isa = PBXBuildFile; fileRef = RF0010100000000000000001 /* WrongAnswerBookView.swift */; };
+		BF0010340000000000000002 /* SpeechService.swift in Sources */ = {isa = PBXBuildFile; fileRef = RF0010300000000000000001 /* SpeechService.swift */; };
+		BF0010350000000000000002 /* DeepSeekParseService.swift in Sources */ = {isa = PBXBuildFile; fileRef = RF0010310000000000000001 /* DeepSeekParseService.swift */; };
+		BF00103E0000000000000002 /* ProcessingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = RF00103E0000000000000001 /* ProcessingService.swift */; };
+		BF0010360000000000000002 /* SelectableTextWithMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = RF0010320000000000000001 /* SelectableTextWithMenu.swift */; };
+		BF0010370000000000000002 /* WordBookView.swift in Sources */ = {isa = PBXBuildFile; fileRef = RF0010330000000000000001 /* WordBookView.swift */; };
+		BF0010390000000000000002 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = RF0010380000000000000001 /* HomeView.swift */; };
+		BF00103B0000000000000002 /* AppLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = RF00103A0000000000000001 /* AppLayout.swift */; };
+		BF00103C0000000000000002 /* ParsedWord.swift in Sources */ = {isa = PBXBuildFile; fileRef = RF00103C0000000000000001 /* ParsedWord.swift */; };
+		BF00103D0000000000000002 /* CustomWordBookView.swift in Sources */ = {isa = PBXBuildFile; fileRef = RF00103D0000000000000001 /* CustomWordBookView.swift */; };
+		BF0010230000000000000002 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = RF0010110000000000000001 /* Assets.xcassets */; };
+		BF0010240000000000000002 /* part.txt in Resources */ = {isa = PBXBuildFile; fileRef = RF0010120000000000000001 /* part.txt */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		35045829F1190937868EB437 /* EHExam.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = EHExam.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		84F4FBA9604E7BBA15F43698 /* EHExamShuffled.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = EHExamShuffled.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		RF0010010000000000000001 /* EHExamApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EHExamApp.swift; sourceTree = "<group>"; };
+		RF0010020000000000000001 /* Question.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Question.swift; sourceTree = "<group>"; };
+		RF0010030000000000000001 /* ExamParserService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExamParserService.swift; sourceTree = "<group>"; };
+		RF0010040000000000000001 /* QuestionParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuestionParser.swift; sourceTree = "<group>"; };
+		RF0010050000000000000001 /* SettingsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsService.swift; sourceTree = "<group>"; };
+		RF0010060000000000000001 /* StorageService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorageService.swift; sourceTree = "<group>"; };
+		RF0010070000000000000001 /* TranslationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranslationService.swift; sourceTree = "<group>"; };
+		RF0010080000000000000001 /* QuestionViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuestionViewModel.swift; sourceTree = "<group>"; };
+		RF0010090000000000000001 /* AnswerDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnswerDetailView.swift; sourceTree = "<group>"; };
+		RF00100A0000000000000001 /* AppLogoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLogoView.swift; sourceTree = "<group>"; };
+		RF00100B0000000000000001 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		RF00100C0000000000000001 /* FavoriteView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoriteView.swift; sourceTree = "<group>"; };
+		RF00100D0000000000000001 /* LaunchScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchScreen.swift; sourceTree = "<group>"; };
+		RF00100E0000000000000001 /* QuestionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuestionView.swift; sourceTree = "<group>"; };
+		RF00100F0000000000000001 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		RF0010100000000000000001 /* WrongAnswerBookView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WrongAnswerBookView.swift; sourceTree = "<group>"; };
+		RF0010300000000000000001 /* SpeechService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechService.swift; sourceTree = "<group>"; };
+		RF0010310000000000000001 /* DeepSeekParseService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepSeekParseService.swift; sourceTree = "<group>"; };
+		RF00103E0000000000000001 /* ProcessingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessingService.swift; sourceTree = "<group>"; };
+		RF0010320000000000000001 /* SelectableTextWithMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectableTextWithMenu.swift; sourceTree = "<group>"; };
+		RF0010330000000000000001 /* WordBookView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WordBookView.swift; sourceTree = "<group>"; };
+		RF0010380000000000000001 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		RF00103A0000000000000001 /* AppLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLayout.swift; sourceTree = "<group>"; };
+		RF00103C0000000000000001 /* ParsedWord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParsedWord.swift; sourceTree = "<group>"; };
+		RF00103D0000000000000001 /* CustomWordBookView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomWordBookView.swift; sourceTree = "<group>"; };
+		RF0010110000000000000001 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		RF0010120000000000000001 /* part.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = part.txt; sourceTree = "<group>"; };
+		RF0010130000000000000001 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		FP35045825F1190937868EB437 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FP84F4FBA6604E7BBA15F43698 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		GR0010000000000000000001 = {
+			isa = PBXGroup;
+			children = (
+				RF0010010000000000000001 /* EHExamApp.swift */,
+				RF0010130000000000000001 /* Info.plist */,
+				RF0010110000000000000001 /* Assets.xcassets */,
+				GR0010020000000000000001 /* Models */,
+				GR0010030000000000000001 /* Services */,
+				GR0010040000000000000001 /* ViewModels */,
+				GR0010050000000000000001 /* Views */,
+				GR0010060000000000000001 /* resources */,
+				GR0010070000000000000001 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		GR0010020000000000000001 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				RF0010020000000000000001 /* Question.swift */,
+				RF00103C0000000000000001 /* ParsedWord.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		GR0010030000000000000001 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				RF0010030000000000000001 /* ExamParserService.swift */,
+				RF0010040000000000000001 /* QuestionParser.swift */,
+				RF0010050000000000000001 /* SettingsService.swift */,
+				RF0010060000000000000001 /* StorageService.swift */,
+				RF0010070000000000000001 /* TranslationService.swift */,
+				RF0010300000000000000001 /* SpeechService.swift */,
+				RF0010310000000000000001 /* DeepSeekParseService.swift */,
+				RF00103E0000000000000001 /* ProcessingService.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		GR0010040000000000000001 /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				RF0010080000000000000001 /* QuestionViewModel.swift */,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		GR0010050000000000000001 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				RF0010090000000000000001 /* AnswerDetailView.swift */,
+				RF00100A0000000000000001 /* AppLogoView.swift */,
+				RF00100B0000000000000001 /* ContentView.swift */,
+				RF00100C0000000000000001 /* FavoriteView.swift */,
+				RF00100D0000000000000001 /* LaunchScreen.swift */,
+				RF00100E0000000000000001 /* QuestionView.swift */,
+				RF00100F0000000000000001 /* SettingsView.swift */,
+				RF0010100000000000000001 /* WrongAnswerBookView.swift */,
+				RF0010320000000000000001 /* SelectableTextWithMenu.swift */,
+				RF0010330000000000000001 /* WordBookView.swift */,
+				RF00103D0000000000000001 /* CustomWordBookView.swift */,
+				RF0010380000000000000001 /* HomeView.swift */,
+				RF00103A0000000000000001 /* AppLayout.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		GR0010060000000000000001 /* resources */ = {
+			isa = PBXGroup;
+			children = (
+				RF0010120000000000000001 /* part.txt */,
+			);
+			path = resources;
+			sourceTree = "<group>";
+		};
+		GR0010070000000000000001 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				35045829F1190937868EB437 /* EHExam.app */,
+				84F4FBA9604E7BBA15F43698 /* EHExamShuffled.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		35045828F1190937868EB437 /* EHExam */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CL3504582CF1190937868EB437 /* Build configuration list for PBXNativeTarget "EHExam" */;
+			buildPhases = (
+				SP35045826F1190937868EB437 /* Sources */,
+				FP35045825F1190937868EB437 /* Frameworks */,
+				RP35045827F1190937868EB437 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = EHExam;
+			productName = EHExam;
+			productReference = 35045829F1190937868EB437 /* EHExam.app */;
+			productType = "com.apple.product-type.application";
+		};
+		84F4FBA8604E7BBA15F43698 /* EHExamShuffled */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CL84F4FBAB604E7BBA15F43698 /* Build configuration list for PBXNativeTarget "EHExamShuffled" */;
+			buildPhases = (
+				SP84F4FBA7604E7BBA15F43698 /* Sources */,
+				FP84F4FBA6604E7BBA15F43698 /* Frameworks */,
+				RP84F4FBA9604E7BBA15F43698 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = EHExamShuffled;
+			productName = EHExamShuffled;
+			productReference = 84F4FBA9604E7BBA15F43698 /* EHExamShuffled.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		PR0010000000000000000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1500;
+				LastUpgradeCheck = 1500;
+			};
+			buildConfigurationList = CLPR0010000000000000000001 /* Build configuration list for PBXProject "EHExam" */;
+			compatibilityVersion = "Xcode 15.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = GR0010000000000000000001;
+			productRefGroup = GR0010070000000000000001 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				35045828F1190937868EB437 /* EHExam */,
+				84F4FBA8604E7BBA15F43698 /* EHExamShuffled */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		RP35045827F1190937868EB437 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BF0010110000000000000001 /* Assets.xcassets in Resources */,
+				BF0010120000000000000001 /* part.txt in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		RP84F4FBA9604E7BBA15F43698 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BF0010230000000000000002 /* Assets.xcassets in Resources */,
+				BF0010240000000000000002 /* part.txt in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		SP35045826F1190937868EB437 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BF0010010000000000000001 /* EHExamApp.swift in Sources */,
+				BF0010020000000000000001 /* Question.swift in Sources */,
+				BF0010030000000000000001 /* ExamParserService.swift in Sources */,
+				BF0010040000000000000001 /* QuestionParser.swift in Sources */,
+				BF0010050000000000000001 /* SettingsService.swift in Sources */,
+				BF0010060000000000000001 /* StorageService.swift in Sources */,
+				BF0010070000000000000001 /* TranslationService.swift in Sources */,
+				BF0010080000000000000001 /* QuestionViewModel.swift in Sources */,
+				BF0010090000000000000001 /* AnswerDetailView.swift in Sources */,
+				BF00100A0000000000000001 /* AppLogoView.swift in Sources */,
+				BF00100B0000000000000001 /* ContentView.swift in Sources */,
+				BF00100C0000000000000001 /* FavoriteView.swift in Sources */,
+				BF00100D0000000000000001 /* LaunchScreen.swift in Sources */,
+				BF00100E0000000000000001 /* QuestionView.swift in Sources */,
+				BF00100F0000000000000001 /* SettingsView.swift in Sources */,
+				BF0010100000000000000001 /* WrongAnswerBookView.swift in Sources */,
+				BF0010300000000000000001 /* SpeechService.swift in Sources */,
+				BF0010310000000000000001 /* DeepSeekParseService.swift in Sources */,
+				BF00103E0000000000000001 /* ProcessingService.swift in Sources */,
+				BF0010320000000000000001 /* SelectableTextWithMenu.swift in Sources */,
+				BF0010330000000000000001 /* WordBookView.swift in Sources */,
+				BF0010380000000000000001 /* HomeView.swift in Sources */,
+				BF00103A0000000000000001 /* AppLayout.swift in Sources */,
+				BF00103C0000000000000001 /* ParsedWord.swift in Sources */,
+				BF00103D0000000000000001 /* CustomWordBookView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		SP84F4FBA7604E7BBA15F43698 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BF0010130000000000000002 /* EHExamApp.swift in Sources */,
+				BF0010140000000000000002 /* Question.swift in Sources */,
+				BF0010150000000000000002 /* ExamParserService.swift in Sources */,
+				BF0010160000000000000002 /* QuestionParser.swift in Sources */,
+				BF0010170000000000000002 /* SettingsService.swift in Sources */,
+				BF0010180000000000000002 /* StorageService.swift in Sources */,
+				BF0010190000000000000002 /* TranslationService.swift in Sources */,
+				BF00101A0000000000000002 /* QuestionViewModel.swift in Sources */,
+				BF00101B0000000000000002 /* AnswerDetailView.swift in Sources */,
+				BF00101C0000000000000002 /* AppLogoView.swift in Sources */,
+				BF00101D0000000000000002 /* ContentView.swift in Sources */,
+				BF00101E0000000000000002 /* FavoriteView.swift in Sources */,
+				BF00101F0000000000000002 /* LaunchScreen.swift in Sources */,
+				BF0010200000000000000002 /* QuestionView.swift in Sources */,
+				BF0010210000000000000002 /* SettingsView.swift in Sources */,
+				BF0010220000000000000002 /* WrongAnswerBookView.swift in Sources */,
+				BF0010340000000000000002 /* SpeechService.swift in Sources */,
+				BF0010350000000000000002 /* DeepSeekParseService.swift in Sources */,
+				BF00103E0000000000000002 /* ProcessingService.swift in Sources */,
+				BF0010360000000000000002 /* SelectableTextWithMenu.swift in Sources */,
+				BF0010370000000000000002 /* WordBookView.swift in Sources */,
+				BF0010390000000000000002 /* HomeView.swift in Sources */,
+				BF00103B0000000000000002 /* AppLayout.swift in Sources */,
+				BF00103C0000000000000002 /* ParsedWord.swift in Sources */,
+				BF00103D0000000000000002 /* CustomWordBookView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		BC3504582DF1190937868EB437 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 2743LCQM5N;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Info.plist;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ehexam.EHExam.yuhuahuan.1769935853;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		BC3504582EF1190937868EB437 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 2743LCQM5N;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Info.plist;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ehexam.EHExam.yuhuahuan.1769935853;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		BC84F4FBAC604E7BBA15F43698 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Info.plist;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ehexam.EHExamShuffled;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited) SHUFFLE_ENABLED";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		BC84F4FBAD604E7BBA15F43698 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Info.plist;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ehexam.EHExamShuffled;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = SHUFFLE_ENABLED;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		BCPR001Debug0000000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		BCPR001Release000000000000001 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		CL3504582CF1190937868EB437 /* Build configuration list for PBXNativeTarget "EHExam" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BC3504582DF1190937868EB437 /* Debug */,
+				BC3504582EF1190937868EB437 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CL84F4FBAB604E7BBA15F43698 /* Build configuration list for PBXNativeTarget "EHExamShuffled" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BC84F4FBAC604E7BBA15F43698 /* Debug */,
+				BC84F4FBAD604E7BBA15F43698 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CLPR0010000000000000000001 /* Build configuration list for PBXProject "EHExam" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BCPR001Debug0000000000000001 /* Debug */,
+				BCPR001Release000000000000001 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = PR0010000000000000000001 /* Project object */;
+}

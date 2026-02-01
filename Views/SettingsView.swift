@@ -9,11 +9,11 @@ import SwiftUI
 
 struct SettingsView: View {
     @ObservedObject private var settings = SettingsService.shared
+    @ObservedObject private var processing = ProcessingService.shared
     @State private var apiKey: String = ""
     @State private var showAPIKeyAlert = false
     @State private var showFilePicker = false
-    @State private var isProcessing = false
-    @State private var processingMessage = ""
+    @State private var showWordParseFilePicker = false
     @EnvironmentObject var viewModel: QuestionViewModel
     
     var body: some View {
@@ -154,19 +154,30 @@ struct SettingsView: View {
                             Text("上传试卷并解析")
                         }
                     }
-                    .disabled(!settings.hasDeepSeekAPIKey || isProcessing)
+                    .disabled(!settings.hasDeepSeekAPIKey || processing.isProcessing)
                     
-                    if isProcessing {
+                    Button(action: {
+                        showWordParseFilePicker = true
+                    }) {
+                        HStack {
+                            Image(systemName: "text.magnifyingglass")
+                                .foregroundColor(.purple)
+                            Text("解析单词")
+                        }
+                    }
+                    .disabled(!settings.hasDeepSeekAPIKey || processing.isProcessing)
+                    
+                    if processing.isProcessing {
                         HStack {
                             ProgressView()
-                            Text(processingMessage)
+                            Text(processing.message)
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
                     }
                 }
             }
-            .navigationTitle("我们")
+            .navigationTitle("设置")
             .onAppear {
                 apiKey = settings.deepSeekAPIKey ?? ""
             }
@@ -176,6 +187,13 @@ struct SettingsView: View {
                 allowsMultipleSelection: false
             ) { result in
                 handleFileSelection(result)
+            }
+            .fileImporter(
+                isPresented: $showWordParseFilePicker,
+                allowedContentTypes: [.plainText, .text],
+                allowsMultipleSelection: false
+            ) { result in
+                handleWordParseFileSelection(result)
             }
             .alert("API Key已保存", isPresented: $showAPIKeyAlert) {
                 Button("确定", role: .cancel) { }
@@ -190,14 +208,12 @@ struct SettingsView: View {
                 processExamFile(url: url)
             }
         case .failure(let error):
-            processingMessage = "文件选择失败: \(error.localizedDescription)"
-            isProcessing = false
+            ProcessingService.shared.finishWithError("文件选择失败: \(error.localizedDescription)")
         }
     }
     
     private func processExamFile(url: URL) {
-        isProcessing = true
-        processingMessage = "正在读取文件..."
+        ProcessingService.shared.startProcessing(initialMessage: "正在读取文件...", animateMessage: false)
         
         let hasAccess = url.startAccessingSecurityScopedResource()
         
@@ -208,14 +224,13 @@ struct SettingsView: View {
                 let fileContent = try String(contentsOf: url, encoding: .utf8)
                 guard !fileContent.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
                     DispatchQueue.main.async {
-                        self.isProcessing = false
-                        self.processingMessage = "文件为空，请选择有内容的 TXT 文件"
+                        ProcessingService.shared.finishWithError("文件为空，请选择有内容的 TXT 文件")
                     }
                     return
                 }
                 
                 DispatchQueue.main.async {
-                    self.processingMessage = "正在解析试卷..."
+                    ProcessingService.shared.updateMessage("正在解析试卷...")
                 }
                 
                 // 调用解析服务
@@ -224,40 +239,97 @@ struct SettingsView: View {
                     apiKey: SettingsService.shared.deepSeekAPIKey ?? "",
                     onProgress: { msg in
                         DispatchQueue.main.async {
-                            self.processingMessage = msg
+                            ProcessingService.shared.updateMessage(msg)
                         }
                     }
                 ) { questions, error in
                     DispatchQueue.main.async {
-                        self.isProcessing = false
-                        
                         if let error = error {
-                            self.processingMessage = "解析失败: \(error.localizedDescription)"
+                            ProcessingService.shared.finishWithError(error.localizedDescription)
                             return
                         }
                         
                         if let questions = questions, !questions.isEmpty {
-                            // 将题目添加到题库
                             self.addQuestionsToBank(questions)
-                            self.processingMessage = "已解析 \(questions.count) 道题并加入题库"
+                            ProcessingService.shared.finishWithSuccess("解析完成", message: "已解析 \(questions.count) 道题并加入题库")
                         } else {
-                            self.processingMessage = "未能解析出题目，请检查文件格式"
+                            ProcessingService.shared.finishWithSuccess("解析完成", message: "未能解析出题目，请检查文件格式")
                         }
                     }
                 }
             } catch {
                 DispatchQueue.main.async {
-                    self.isProcessing = false
-                    self.processingMessage = "无法读取为文本。请使用 TXT 格式；Word 文档请先另存为「纯文本」或 .txt"
+                    ProcessingService.shared.finishWithError("无法读取为文本。请使用 TXT 格式")
                 }
             }
         }
     }
     
     private func addQuestionsToBank(_ questions: [Question]) {
-        // 这里需要实现将题目添加到题库的逻辑
-        // 可以追加到part.txt文件，或者使用其他存储方式
         viewModel.addQuestionsToBank(questions)
+    }
+    
+    private func handleWordParseFileSelection(_ result: Result<[URL], Error>) {
+        switch result {
+        case .success(let urls):
+            if let url = urls.first {
+                processWordParseFile(url: url)
+            }
+        case .failure(let error):
+            ProcessingService.shared.finishWithError("文件选择失败: \(error.localizedDescription)")
+        }
+    }
+    
+    private func processWordParseFile(url: URL) {
+        ProcessingService.shared.startProcessing(initialMessage: "正在读取文件...", animateMessage: false)
+        
+        let hasAccess = url.startAccessingSecurityScopedResource()
+        
+        DispatchQueue.global(qos: .userInitiated).async {
+            defer { if hasAccess { url.stopAccessingSecurityScopedResource() } }
+            do {
+                let fileContent = try String(contentsOf: url, encoding: .utf8)
+                guard !fileContent.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+                    DispatchQueue.main.async {
+                        ProcessingService.shared.finishWithError("文件为空，请选择有内容的 TXT 文件")
+                    }
+                    return
+                }
+                
+                DispatchQueue.main.async {
+                    ProcessingService.shared.updateMessage("正在解析超纲词...")
+                    ProcessingService.shared.startMessageAnimation()
+                }
+                
+                DeepSeekParseService.shared.parseWordsFromExam(
+                    content: fileContent,
+                    apiKey: SettingsService.shared.deepSeekAPIKey ?? "",
+                    onProgress: { msg in
+                        DispatchQueue.main.async {
+                            ProcessingService.shared.updateMessage(msg)
+                        }
+                    }
+                ) { result in
+                    DispatchQueue.main.async {
+                        switch result {
+                        case .success(let words):
+                            if !words.isEmpty {
+                                StorageService.shared.addParsedWords(words)
+                                ProcessingService.shared.finishWithSuccess("解析完成", message: "已解析 \(words.count) 个超纲词，已加入自定义单词本")
+                            } else {
+                                ProcessingService.shared.finishWithSuccess("解析完成", message: "未发现超出初中范围的单词")
+                            }
+                        case .failure(let error):
+                            ProcessingService.shared.finishWithError(error.localizedDescription)
+                        }
+                    }
+                }
+            } catch {
+                DispatchQueue.main.async {
+                    ProcessingService.shared.finishWithError("无法读取文件，请使用 TXT 格式")
+                }
+            }
+        }
     }
 }
 

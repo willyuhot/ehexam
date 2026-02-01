@@ -127,6 +127,91 @@ class DeepSeekParseService {
         """
     }
     
+    /// 解析试卷中的超纲词（超出初中范围），返回结构化单词列表
+    func parseWordsFromExam(
+        content: String,
+        apiKey: String,
+        onProgress: ((String) -> Void)? = nil,
+        completion: @escaping (Result<[ParsedWord], Error>) -> Void
+    ) {
+        guard !apiKey.isEmpty else {
+            completion(.failure(NSError(domain: "DeepSeekParseService", code: -1, userInfo: [NSLocalizedDescriptionKey: "API Key未配置"])))
+            return
+        }
+        
+        onProgress?("正在分析试卷中的超纲词...")
+        
+        let systemPrompt = """
+        你是英语词汇专家，熟悉初中（约1600词）与高中、四级词汇范围。
+        请分析试卷文本，找出所有「超出初中词汇范围」的单词。
+        对每个超纲词，输出如下 JSON 数组格式，不要输出任何其他文字：
+        [{"word":"单词","phonetic":"/音标/","meaningWithRoot":"释义（词根：xxx）","originalSentence":"试卷中出现的原文句子","translation":"原文的中文译文","memoryTips":"记忆要点"}]
+        要求：word 必填；phonetic 可空；meaningWithRoot 包含释义和词根信息；originalSentence 必须是试卷原文；translation 对原文的翻译；memoryTips 简洁记忆法。
+        """
+        
+        let userPrompt = "请分析以下试卷内容，提取所有超出初中词汇范围的单词，按上述 JSON 格式输出：\n\n\(content.prefix(12000))"
+        
+        var request = URLRequest(url: URL(string: apiURL)!)
+        request.httpMethod = "POST"
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.addValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        
+        let body: [String: Any] = [
+            "model": "deepseek-chat",
+            "messages": [
+                ["role": "system", "content": systemPrompt],
+                ["role": "user", "content": userPrompt]
+            ],
+            "temperature": 0.2,
+            "max_tokens": 8000
+        ]
+        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                completion(.failure(error))
+                return
+            }
+            guard let data = data,
+                  let raw = String(data: data, encoding: .utf8),
+                  let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                  let choices = json["choices"] as? [[String: Any]],
+                  let first = choices.first,
+                  let msg = first["message"] as? [String: Any],
+                  let contentStr = msg["content"] as? String, !contentStr.isEmpty else {
+                completion(.failure(NSError(domain: "DeepSeekParseService", code: -2, userInfo: [NSLocalizedDescriptionKey: "API 返回格式错误"])))
+                return
+            }
+            
+            let cleaned = contentStr
+                .replacingOccurrences(of: "```json", with: "")
+                .replacingOccurrences(of: "```", with: "")
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+            
+            guard let jsonData = cleaned.data(using: .utf8),
+                  let arr = try? JSONSerialization.jsonObject(with: jsonData) as? [[String: Any]] else {
+                completion(.failure(NSError(domain: "DeepSeekParseService", code: -3, userInfo: [NSLocalizedDescriptionKey: "无法解析单词列表"])))
+                return
+            }
+            
+            var words: [ParsedWord] = []
+            for (i, item) in arr.enumerated() {
+                guard let word = item["word"] as? String, !word.isEmpty else { continue }
+                let pw = ParsedWord(
+                    id: "\(word)_\(i)",
+                    word: word,
+                    phonetic: (item["phonetic"] as? String) ?? "",
+                    meaningWithRoot: (item["meaningWithRoot"] as? String) ?? (item["meaning"] as? String) ?? "",
+                    originalSentence: (item["originalSentence"] as? String) ?? "",
+                    translation: (item["translation"] as? String) ?? "",
+                    memoryTips: (item["memoryTips"] as? String) ?? ""
+                )
+                words.append(pw)
+            }
+            completion(.success(words))
+        }.resume()
+    }
+    
     private func buildQuestionParsePrompt(question: Question) -> String {
         var s = "题目：\(question.questionText)\n\n选项：\n"
         for (k, v) in question.options.sorted(by: { $0.key < $1.key }) {

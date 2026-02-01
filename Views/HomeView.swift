@@ -14,8 +14,9 @@ struct HomeView: View {
     @State private var showPractice: Bool = false
     @State private var practiceMode: LearningMode = .default
     
+    /// 今日起往前 16 天（今天 + 15 天前），每天都可选
     private var recentDays: [StorageService.DailyStats] {
-        StorageService.shared.getRecentDaysWithStats(limit: 14)
+        StorageService.shared.getLast16DaysWithStats()
     }
     
     private var todayStats: StorageService.DailyStats? {
@@ -55,12 +56,12 @@ struct HomeView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
     
-    // MARK: - 今日概览
+    // MARK: - 今日概览（快捷卡片）
     
     private var todaySection: some View {
         VStack(alignment: .leading, spacing: AppLayout.spacingM) {
             HStack {
-                Text("今日学习")
+                Text("今日概览")
                     .font(AppFont.headline)
                 Spacer()
                 Text(formattedToday())
@@ -95,35 +96,20 @@ struct HomeView: View {
         .cornerRadius(AppLayout.cornerRadiusSection)
     }
     
-    // MARK: - 仪表盘（最近几天）
+    // MARK: - 学习数据（日历网格，点击日期出详情）
     
     private var dashboardSection: some View {
         VStack(alignment: .leading, spacing: AppLayout.spacingM) {
-            Text("学习进度")
+            Text("学习数据")
                 .font(AppFont.headline)
             
-            if recentDays.isEmpty {
-                Text("暂无学习记录")
-                    .font(AppFont.subheadline)
-                    .foregroundColor(.secondary)
-                    .padding(AppLayout.spacingM)
-                    .frame(maxWidth: .infinity)
-            } else {
-                VStack(spacing: 0) {
-                    ForEach(recentDays, id: \.dateString) { day in
-                        DayRow(stats: day) {
-                            selectedDayStats = day
-                            showDayDetail = true
-                        }
-                        if day.dateString != recentDays.last?.dateString {
-                            Divider()
-                                .padding(.leading, AppLayout.spacingM)
-                        }
-                    }
+            StudyDataCalendarView(
+                recentDays: recentDays,
+                onSelectDay: { stats in
+                    selectedDayStats = stats
+                    showDayDetail = true
                 }
-                .background(Color(.secondarySystemGroupedBackground))
-                .cornerRadius(AppLayout.cornerRadiusCard)
-            }
+            )
         }
         .padding(AppLayout.spacingM)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -144,7 +130,10 @@ struct HomeView: View {
                         practiceMode = mode
                         viewModel.setLearningMode(mode)
                         viewModel.loadQuestions()
-                        showPractice = true
+                        // 延迟展示，确保 loadQuestions 的 isLoading=true 已生效，避免闪退
+                        DispatchQueue.main.async {
+                            showPractice = true
+                        }
                     } label: {
                         HStack(spacing: AppLayout.spacingM) {
                             Image(systemName: mode.icon)
@@ -214,59 +203,89 @@ struct HomeView: View {
     }
 }
 
-// MARK: - 单日行（可点击看详情）
+// MARK: - 学习数据日历网格（日一二三四五六 + 日期，点击出详情）
 
-struct DayRow: View {
+struct StudyDataCalendarView: View {
+    let recentDays: [StorageService.DailyStats]
+    let onSelectDay: (StorageService.DailyStats) -> Void
+    
+    private let weekdayLabels = ["日", "一", "二", "三", "四", "五", "六"]
+    private let columns = Array(repeating: GridItem(.flexible(), spacing: 4), count: 7)
+    
+    private var todayString: String {
+        StorageService.dateString(for: Date())
+    }
+    
+    var body: some View {
+        VStack(spacing: AppLayout.spacingS) {
+            // 星期标题
+            HStack(spacing: 0) {
+                ForEach(weekdayLabels, id: \.self) { label in
+                    Text(label)
+                        .font(AppFont.caption)
+                        .foregroundColor(.secondary)
+                        .frame(maxWidth: .infinity)
+                }
+            }
+            
+            if recentDays.isEmpty {
+                Text("暂无学习记录")
+                    .font(AppFont.subheadline)
+                    .foregroundColor(.secondary)
+                    .frame(maxWidth: .infinity)
+                    .padding(AppLayout.spacingL)
+            } else {
+                // 日期网格（每行 7 天）
+                LazyVGrid(columns: columns, spacing: 8) {
+                    ForEach(recentDays, id: \.dateString) { stats in
+                        CalendarDayCell(
+                            stats: stats,
+                            isToday: stats.dateString == todayString,
+                            onTap: { onSelectDay(stats) }
+                        )
+                    }
+                }
+            }
+        }
+        .padding(AppLayout.spacingM)
+        .background(Color(.secondarySystemGroupedBackground))
+        .cornerRadius(AppLayout.cornerRadiusCard)
+    }
+}
+
+struct CalendarDayCell: View {
     let stats: StorageService.DailyStats
+    let isToday: Bool
     let onTap: () -> Void
     
-    private var displayDate: String {
+    private var dayNumber: String {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
         formatter.locale = Locale(identifier: "zh_CN")
-        guard let d = formatter.date(from: stats.dateString) else { return stats.dateString }
+        guard let d = formatter.date(from: stats.dateString) else { return "?" }
         let f = DateFormatter()
-        f.dateFormat = "M月d日 EEEE"
+        f.dateFormat = "d"
         f.locale = Locale(identifier: "zh_CN")
         return f.string(from: d)
     }
     
     var body: some View {
         Button(action: onTap) {
-            HStack {
-                VStack(alignment: .leading, spacing: AppLayout.spacingXS) {
-                    Text(displayDate)
-                        .font(AppFont.subheadline)
-                        .fontWeight(.medium)
-                        .foregroundColor(.primary)
-                    HStack(spacing: AppLayout.spacingM) {
-                        Label("\(stats.totalQuestions) 题", systemImage: "doc.text")
-                            .font(AppFont.caption)
-                            .foregroundColor(.secondary)
-                        Label("对 \(stats.correct)", systemImage: "checkmark.circle")
-                            .font(AppFont.caption)
-                            .foregroundColor(.green)
-                        Label("错 \(stats.wrong)", systemImage: "xmark.circle")
-                            .font(AppFont.caption)
-                            .foregroundColor(.red)
-                        Label("\(stats.wordsLearned) 词", systemImage: "book")
-                            .font(AppFont.caption)
-                            .foregroundColor(.purple)
-                    }
-                }
-                Spacer()
-                Image(systemName: "chevron.right")
-                    .font(AppFont.caption)
-                    .foregroundColor(.secondary)
-            }
-            .padding(.horizontal, AppLayout.spacingM)
-            .padding(.vertical, AppLayout.spacingM)
+            Text(dayNumber)
+                .font(AppFont.subheadline)
+                .fontWeight(isToday ? .semibold : .regular)
+                .foregroundColor(isToday ? .white : .primary)
+                .frame(minWidth: 36, minHeight: 36)
+                .background(
+                    Circle()
+                        .fill(isToday ? Color.red : Color.clear)
+                )
         }
         .buttonStyle(.plain)
     }
 }
 
-// MARK: - 某日详情 Sheet
+// MARK: - 某日详情 Sheet（点击日期后弹出）
 
 struct DayDetailSheet: View {
     let stats: StorageService.DailyStats

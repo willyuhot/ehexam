@@ -147,16 +147,12 @@ class QuestionViewModel: ObservableObject {
             if let path = Bundle.main.path(forResource: "part", ofType: "txt") {
                 baseContent = try? String(contentsOfFile: path, encoding: .utf8)
             }
+            // 模拟器/开发时备用：当前目录的 resources
             if baseContent == nil {
-                let resourcesPath = FileManager.default.currentDirectoryPath + "/resources/part.txt"
-                if FileManager.default.fileExists(atPath: resourcesPath) {
-                    baseContent = try? String(contentsOfFile: resourcesPath, encoding: .utf8)
-                }
-            }
-            if baseContent == nil {
-                let absolutePath = "/Users/yuhuahuan/code/EHExam/resources/part.txt"
-                if FileManager.default.fileExists(atPath: absolutePath) {
-                    baseContent = try? String(contentsOfFile: absolutePath, encoding: .utf8)
+                let cwd = FileManager.default.currentDirectoryPath
+                let fallback = (cwd as NSString).appendingPathComponent("resources/part.txt")
+                if FileManager.default.fileExists(atPath: fallback) {
+                    baseContent = try? String(contentsOfFile: fallback, encoding: .utf8)
                 }
             }
             
@@ -224,12 +220,15 @@ class QuestionViewModel: ObservableObject {
                 DispatchQueue.main.async {
                     self.questions = filtered
                     self.optionMappings = mappings
+                    self.currentQuestionIndex = 0  // 重置索引，防止越界崩溃
+                    self.countedQuestionIds.removeAll()  // 切换模式时重置统计
+                    self.resetQuestionStateSync()
                     self.isLoading = false
                     if filtered.isEmpty {
                         switch self.learningMode {
                         case .wrong: self.errorMessage = "暂无错题，去做题吧"
                         case .favorite: self.errorMessage = "暂无收藏，点击题目右上角⭐收藏"
-                        case .imported: self.errorMessage = "暂无导入的题，请在「我们」中上传试卷"
+                        case .imported: self.errorMessage = "暂无导入的题，请在「设置」中上传试卷"
                         case .default: self.errorMessage = "未能解析到题目，请检查文件格式"
                         }
                     }
@@ -412,6 +411,15 @@ class QuestionViewModel: ObservableObject {
         translatedOptions = [:]
         isTranslating = false
         // 注意：不重置 countedQuestionIds，因为同一题目只应该统计一次
+    }
+    
+    private func resetQuestionStateSync() {
+        selectedAnswer = nil
+        showAnswer = false
+        answerResult = nil
+        translatedQuestion = nil
+        translatedOptions = [:]
+        isTranslating = false
     }
     
     func getWrongAnswerQuestions() -> [Question] {

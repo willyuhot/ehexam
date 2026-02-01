@@ -136,7 +136,7 @@ struct QuestionView: View {
                                                 Button {
                                                     let key = SettingsService.shared.deepSeekAPIKey ?? ""
                                                     guard !key.isEmpty else {
-                                                        smartParseContent = "请在「我们」中配置 DeepSeek API Key"
+                                                        smartParseContent = "请在「设置」中配置 DeepSeek API Key"
                                                         showSmartParseSheet = true
                                                         return
                                                     }

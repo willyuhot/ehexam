@@ -17,6 +17,7 @@ class StorageService {
     private let questionWrongCountKey = "questionWrongCount"
     private let dailyStatsKey = "dailyStats"
     private let importedQuestionIdsKey = "importedQuestionIds"
+    private let parsedWordsKey = "parsedWords"
     
     static let shared = StorageService()
     
@@ -289,6 +290,23 @@ class StorageService {
         }
     }
     
+    /// 今日起往前 16 天（今天 + 15 天前），每天都可选，无记录则显示 0
+    func getLast16DaysWithStats() -> [DailyStats] {
+        let dict = getDailyStatsDict()
+        let cal = Calendar.current
+        var result: [DailyStats] = []
+        for offset in 0..<16 {
+            guard let date = cal.date(byAdding: .day, value: -offset, to: Date()) else { continue }
+            let key = Self.dateString(for: date)
+            let day = dict[key]
+            let c = day?["c"] ?? 0
+            let w = day?["w"] ?? 0
+            let words = day?["words"] ?? 0
+            result.append(DailyStats(dateString: key, correct: c, wrong: w, wordsLearned: words))
+        }
+        return result
+    }
+    
     // MARK: - Imported Questions (导入的题)
     
     func addImportedQuestionIds(_ ids: [Int]) {
@@ -300,5 +318,44 @@ class StorageService {
     
     func getImportedQuestionIds() -> [Int] {
         (UserDefaults.standard.array(forKey: importedQuestionIdsKey) as? [Int]) ?? []
+    }
+    
+    // MARK: - Parsed Words (自定义单词本：试卷解析出的超纲词)
+    
+    func getParsedWords() -> [ParsedWord] {
+        guard let data = UserDefaults.standard.data(forKey: parsedWordsKey),
+              let decoded = try? JSONDecoder().decode([ParsedWord].self, from: data) else {
+            return []
+        }
+        return decoded
+    }
+    
+    func addParsedWords(_ words: [ParsedWord]) {
+        var current = getParsedWords()
+        var existingIds = Set(current.map { $0.id })
+        for w in words {
+            if !existingIds.contains(w.id) {
+                current.append(w)
+                existingIds.insert(w.id)
+            }
+        }
+        saveParsedWords(current)
+    }
+    
+    func setParsedWords(_ words: [ParsedWord]) {
+        saveParsedWords(words)
+    }
+    
+    func removeParsedWord(id: String) {
+        var current = getParsedWords()
+        current.removeAll { $0.id == id }
+        saveParsedWords(current)
+    }
+    
+    private func saveParsedWords(_ words: [ParsedWord]) {
+        if let data = try? JSONEncoder().encode(words) {
+            UserDefaults.standard.set(data, forKey: parsedWordsKey)
+            UserDefaults.standard.synchronize()
+        }
     }
 }
