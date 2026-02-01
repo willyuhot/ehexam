@@ -9,14 +9,13 @@ import SwiftUI
 
 struct HomeView: View {
     @EnvironmentObject var viewModel: QuestionViewModel
-    @State private var showDayDetail: Bool = false
     @State private var selectedDayStats: StorageService.DailyStats?
     @State private var showPractice: Bool = false
     @State private var practiceMode: LearningMode = .default
     
-    /// 今日起往前 16 天（今天 + 15 天前），每天都可选
+    /// 今日起往前 7 天（今天 + 6 天前），每天都可选
     private var recentDays: [StorageService.DailyStats] {
-        StorageService.shared.getLast16DaysWithStats()
+        StorageService.shared.getLastDaysWithStats(days: 7)
     }
     
     private var todayStats: StorageService.DailyStats? {
@@ -42,11 +41,6 @@ struct HomeView: View {
                 .background(Color(.systemGroupedBackground))
                 .navigationTitle("首页")
                 .navigationBarTitleDisplayMode(.large)
-                .sheet(isPresented: $showDayDetail) {
-                    if let stats = selectedDayStats {
-                        DayDetailSheet(stats: stats)
-                    }
-                }
                 .fullScreenCover(isPresented: $showPractice) {
                     QuestionView()
                         .environmentObject(viewModel)
@@ -96,7 +90,7 @@ struct HomeView: View {
         .cornerRadius(AppLayout.cornerRadiusSection)
     }
     
-    // MARK: - 学习数据（日历网格，点击日期出详情）
+    // MARK: - 学习数据（日历网格，点击日期在下方展示详情）
     
     private var dashboardSection: some View {
         VStack(alignment: .leading, spacing: AppLayout.spacingM) {
@@ -105,11 +99,20 @@ struct HomeView: View {
             
             StudyDataCalendarView(
                 recentDays: recentDays,
+                selectedDateString: selectedDayStats?.dateString,
                 onSelectDay: { stats in
-                    selectedDayStats = stats
-                    showDayDetail = true
+                    if selectedDayStats?.dateString == stats.dateString {
+                        selectedDayStats = nil
+                    } else {
+                        selectedDayStats = stats
+                    }
                 }
             )
+            
+            if let stats = selectedDayStats {
+                DayDetailInline(stats: stats)
+                    .transition(.opacity.combined(with: .move(edge: .top)))
+            }
         }
         .padding(AppLayout.spacingM)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -129,9 +132,8 @@ struct HomeView: View {
                     Button {
                         practiceMode = mode
                         viewModel.setLearningMode(mode)
-                        viewModel.loadQuestions()
-                        // 延迟展示，确保 loadQuestions 的 isLoading=true 已生效，避免闪退
-                        DispatchQueue.main.async {
+                        viewModel.loadQuestions(mode: mode) {
+                            // 等 loadQuestions 完成后再展示，避免闪退
                             showPractice = true
                         }
                     } label: {
@@ -207,6 +209,7 @@ struct HomeView: View {
 
 struct StudyDataCalendarView: View {
     let recentDays: [StorageService.DailyStats]
+    let selectedDateString: String?
     let onSelectDay: (StorageService.DailyStats) -> Void
     
     private let weekdayLabels = ["日", "一", "二", "三", "四", "五", "六"]
@@ -241,6 +244,7 @@ struct StudyDataCalendarView: View {
                         CalendarDayCell(
                             stats: stats,
                             isToday: stats.dateString == todayString,
+                            isSelected: stats.dateString == selectedDateString,
                             onTap: { onSelectDay(stats) }
                         )
                     }
@@ -256,6 +260,7 @@ struct StudyDataCalendarView: View {
 struct CalendarDayCell: View {
     let stats: StorageService.DailyStats
     let isToday: Bool
+    let isSelected: Bool
     let onTap: () -> Void
     
     private var dayNumber: String {
@@ -273,23 +278,22 @@ struct CalendarDayCell: View {
         Button(action: onTap) {
             Text(dayNumber)
                 .font(AppFont.subheadline)
-                .fontWeight(isToday ? .semibold : .regular)
-                .foregroundColor(isToday ? .white : .primary)
+                .fontWeight(isToday || isSelected ? .semibold : .regular)
+                .foregroundColor(isToday || isSelected ? .white : .primary)
                 .frame(minWidth: 36, minHeight: 36)
                 .background(
                     Circle()
-                        .fill(isToday ? Color.red : Color.clear)
+                        .fill(isToday ? Color.red : (isSelected ? Color.accentColor : Color.clear))
                 )
         }
         .buttonStyle(.plain)
     }
 }
 
-// MARK: - 某日详情 Sheet（点击日期后弹出）
+// MARK: - 某日详情（日期下方内联展示）
 
-struct DayDetailSheet: View {
+struct DayDetailInline: View {
     let stats: StorageService.DailyStats
-    @Environment(\.dismiss) private var dismiss
     
     private var displayDate: String {
         let formatter = DateFormatter()
@@ -303,37 +307,24 @@ struct DayDetailSheet: View {
     }
     
     var body: some View {
-        NavigationView {
-            VStack(alignment: .leading, spacing: AppLayout.spacingL) {
-                Text(displayDate)
-                    .font(AppFont.title2)
-                    .fontWeight(.bold)
-                    .padding(.horizontal, AppLayout.spacingM)
-                
-                VStack(spacing: AppLayout.spacingM) {
-                    detailRow(title: "做题数", value: "\(stats.totalQuestions) 题", icon: "doc.text.fill")
-                    detailRow(title: "答对", value: "\(stats.correct) 题", icon: "checkmark.circle.fill", color: .green)
-                    detailRow(title: "答错", value: "\(stats.wrong) 题", icon: "xmark.circle.fill", color: .red)
-                    detailRow(title: "学词数", value: "\(stats.wordsLearned) 个", icon: "book.fill", color: .purple)
-                }
-                .padding(AppLayout.spacingM)
-                .frame(maxWidth: .infinity)
-                .background(Color(.secondarySystemGroupedBackground))
-                .cornerRadius(AppLayout.cornerRadiusCard)
-                .padding(.horizontal, AppLayout.spacingM)
-                
-                Spacer()
+        VStack(alignment: .leading, spacing: AppLayout.spacingM) {
+            Text(displayDate)
+                .font(AppFont.subheadline)
+                .fontWeight(.semibold)
+                .foregroundColor(.secondary)
+            
+            VStack(spacing: AppLayout.spacingM) {
+                detailRow(title: "做题数", value: "\(stats.totalQuestions) 题", icon: "doc.text.fill")
+                detailRow(title: "答对", value: "\(stats.correct) 题", icon: "checkmark.circle.fill", color: .green)
+                detailRow(title: "答错", value: "\(stats.wrong) 题", icon: "xmark.circle.fill", color: .red)
+                detailRow(title: "学词数", value: "\(stats.wordsLearned) 个", icon: "book.fill", color: .purple)
             }
-            .padding(.top, AppLayout.spacingL)
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-            .navigationTitle("当日详情")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("关闭") { dismiss() }
-                }
-            }
+            .padding(AppLayout.spacingM)
+            .frame(maxWidth: .infinity)
+            .background(Color(.tertiarySystemGroupedBackground))
+            .cornerRadius(AppLayout.cornerRadiusCard)
         }
+        .padding(.top, AppLayout.spacingS)
     }
     
     private func detailRow(title: String, value: String, icon: String, color: Color = .accentColor) -> some View {

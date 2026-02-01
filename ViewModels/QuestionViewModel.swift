@@ -131,10 +131,10 @@ class QuestionViewModel: ObservableObject {
     }
     
     func loadQuestions() {
-        loadQuestions(mode: learningMode)
+        loadQuestions(mode: learningMode, completion: nil)
     }
     
-    func loadQuestions(mode: LearningMode) {
+    func loadQuestions(mode: LearningMode, completion: (() -> Void)? = nil) {
         learningMode = mode
         isLoading = true
         errorMessage = nil
@@ -232,11 +232,13 @@ class QuestionViewModel: ObservableObject {
                         case .default: self.errorMessage = "未能解析到题目，请检查文件格式"
                         }
                     }
+                    completion?()
                 }
             } else {
                 DispatchQueue.main.async {
                     self.isLoading = false
                     self.errorMessage = "无法读取题目文件，请确保part.txt在Resources文件夹中"
+                    completion?()
                 }
             }
         }

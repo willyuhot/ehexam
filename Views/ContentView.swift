@@ -10,36 +10,41 @@ import SwiftUI
 struct ContentView: View {
     @StateObject private var viewModel = QuestionViewModel()
     @ObservedObject private var processing = ProcessingService.shared
+    @State private var selectedTab = 0
     
     var body: some View {
         ZStack {
             Color(.systemBackground)
                 .ignoresSafeArea(edges: .all)
             
-            TabView {
+            TabView(selection: $selectedTab) {
                 HomeView()
                     .environmentObject(viewModel)
                     .tabItem {
                         Label("首页", systemImage: "house.fill")
                     }
+                    .tag(0)
                 
-                QuestionView()
+                ExamTabContent()
                     .environmentObject(viewModel)
                     .tabItem {
                         Label("考试", systemImage: "book.fill")
                     }
+                    .tag(1)
                 
                 WrongAnswerBookView()
                     .environmentObject(viewModel)
                     .tabItem {
                         Label("错题本", systemImage: "exclamationmark.triangle.fill")
                     }
+                    .tag(2)
                 
                 FavoriteView()
                     .environmentObject(viewModel)
                     .tabItem {
                         Label("收藏", systemImage: "star.fill")
                     }
+                    .tag(3)
                 
                 NavigationView {
                     List {
@@ -60,6 +65,7 @@ struct ContentView: View {
                 .tabItem {
                     Label("我的", systemImage: "person.fill")
                 }
+                .tag(4)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .accentColor(.blue)
@@ -91,6 +97,28 @@ struct ContentView: View {
             }
         } message: {
             Text(processing.completionMessage)
+        }
+    }
+}
+
+// 考试 tab 专用包装，延迟创建 QuestionView 避免切换 tab 时闪退
+private struct ExamTabContent: View {
+    @EnvironmentObject var viewModel: QuestionViewModel
+    @State private var isReady = false
+    
+    var body: some View {
+        Group {
+            if isReady {
+                QuestionView()
+            } else {
+                ProgressView("加载中...")
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+        }
+        .onAppear {
+            DispatchQueue.main.async {
+                isReady = true
+            }
         }
     }
 }

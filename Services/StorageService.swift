@@ -290,12 +290,12 @@ class StorageService {
         }
     }
     
-    /// 今日起往前 16 天（今天 + 15 天前），每天都可选，无记录则显示 0
-    func getLast16DaysWithStats() -> [DailyStats] {
+    /// 今日起往前 N 天（今天 + 前 N-1 天），每天都可选，无记录则显示 0
+    func getLastDaysWithStats(days: Int) -> [DailyStats] {
         let dict = getDailyStatsDict()
         let cal = Calendar.current
         var result: [DailyStats] = []
-        for offset in 0..<16 {
+        for offset in 0..<days {
             guard let date = cal.date(byAdding: .day, value: -offset, to: Date()) else { continue }
             let key = Self.dateString(for: date)
             let day = dict[key]

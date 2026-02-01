@@ -127,7 +127,11 @@ class DeepSeekParseService {
         """
     }
     
+    /// 单次请求的文本块大小（字符），避免单次输出超过 max_tokens
+    private let chunkSize = 6000
+    
     /// 解析试卷中的超纲词（超出初中范围），返回结构化单词列表
+    /// 因 API max_tokens 限制（约 8000），将内容分块多次请求，再合并去重，覆盖所有超纲词
     func parseWordsFromExam(
         content: String,
         apiKey: String,
@@ -139,17 +143,121 @@ class DeepSeekParseService {
             return
         }
         
-        onProgress?("正在分析试卷中的超纲词...")
+        let trimmed = content.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            completion(.success([]))
+            return
+        }
         
+        // 按段落或固定长度分块，保证每块在 chunkSize 内
+        let chunks = splitIntoChunks(trimmed, maxChars: chunkSize)
+        
+        if chunks.count == 1 {
+            onProgress?("正在分析试卷中的超纲词...")
+            parseSingleChunk(content: chunks[0], apiKey: apiKey, chunkIndex: 0, totalChunks: 1, onProgress: onProgress) { result in
+                completion(result)
+            }
+        } else {
+            onProgress?("正在分块分析试卷（共 \(chunks.count) 块）...")
+            parseChunksSequentially(chunks: chunks, apiKey: apiKey, onProgress: onProgress, completion: completion)
+        }
+    }
+    
+    /// 将文本按段落或固定长度分块
+    private func splitIntoChunks(_ text: String, maxChars: Int) -> [String] {
+        var chunks: [String] = []
+        var remaining = text
+        while !remaining.isEmpty {
+            if remaining.count <= maxChars {
+                chunks.append(remaining)
+                break
+            }
+            let endIdx = remaining.index(remaining.startIndex, offsetBy: maxChars, limitedBy: remaining.endIndex) ?? remaining.endIndex
+            var chunk = String(remaining[..<endIdx])
+            remaining = String(remaining[endIdx...])
+            // 尽量在段落边界截断，避免把句子拦腰截断
+            if let lastNewline = chunk.lastIndex(of: "\n") {
+                let lenToNewline = chunk.distance(from: chunk.startIndex, to: chunk.index(after: lastNewline))
+                if lenToNewline > maxChars / 2 {
+                    let afterNewline = chunk.index(after: lastNewline)
+                    remaining = String(chunk[afterNewline...]) + remaining
+                    chunk = String(chunk[..<afterNewline])
+                }
+            }
+            chunks.append(chunk)
+        }
+        return chunks
+    }
+    
+    /// 顺序请求多块，合并去重
+    private func parseChunksSequentially(
+        chunks: [String],
+        apiKey: String,
+        onProgress: ((String) -> Void)?,
+        completion: @escaping (Result<[ParsedWord], Error>) -> Void
+    ) {
+        var allWords: [ParsedWord] = []
+        var seenWords = Set<String>()
+        let queue = DispatchQueue(label: "parse.chunks")
+        var currentIndex = 0
+        
+        func processNext() {
+            guard currentIndex < chunks.count else {
+                queue.async {
+                    completion(.success(allWords))
+                }
+                return
+            }
+            let idx = currentIndex
+            currentIndex += 1
+            let chunk = chunks[idx]
+            
+            DispatchQueue.main.async {
+                onProgress?("正在分析第 \(idx + 1)/\(chunks.count) 块...")
+            }
+            
+            parseSingleChunk(content: chunk, apiKey: apiKey, chunkIndex: idx, totalChunks: chunks.count, onProgress: nil) { result in
+                switch result {
+                case .success(let words):
+                    queue.async {
+                        for w in words {
+                            let key = w.word.lowercased()
+                            if !seenWords.contains(key) {
+                                seenWords.insert(key)
+                                allWords.append(w)
+                            }
+                        }
+                        processNext()
+                    }
+                case .failure(let err):
+                    DispatchQueue.main.async {
+                        completion(.failure(err))
+                    }
+                }
+            }
+        }
+        
+        processNext()
+    }
+    
+    /// 单块解析（一次 API 调用）
+    private func parseSingleChunk(
+        content: String,
+        apiKey: String,
+        chunkIndex: Int,
+        totalChunks: Int,
+        onProgress: ((String) -> Void)?,
+        completion: @escaping (Result<[ParsedWord], Error>) -> Void
+    ) {
         let systemPrompt = """
         你是英语词汇专家，熟悉初中（约1600词）与高中、四级词汇范围。
-        请分析试卷文本，找出所有「超出初中词汇范围」的单词。
+        请分析以下文本片段，找出所有「超出初中词汇范围」的单词。
         对每个超纲词，输出如下 JSON 数组格式，不要输出任何其他文字：
         [{"word":"单词","phonetic":"/音标/","meaningWithRoot":"释义（词根：xxx）","originalSentence":"试卷中出现的原文句子","translation":"原文的中文译文","memoryTips":"记忆要点"}]
         要求：word 必填；phonetic 可空；meaningWithRoot 包含释义和词根信息；originalSentence 必须是试卷原文；translation 对原文的翻译；memoryTips 简洁记忆法。
         """
         
-        let userPrompt = "请分析以下试卷内容，提取所有超出初中词汇范围的单词，按上述 JSON 格式输出：\n\n\(content.prefix(12000))"
+        let userPrompt = "请分析以下试卷内容片段，提取所有超出初中词汇范围的单词，按上述 JSON 格式输出：\n\n\(content)"
         
         var request = URLRequest(url: URL(string: apiURL)!)
         request.httpMethod = "POST"
@@ -173,7 +281,6 @@ class DeepSeekParseService {
                 return
             }
             guard let data = data,
-                  let raw = String(data: data, encoding: .utf8),
                   let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
                   let choices = json["choices"] as? [[String: Any]],
                   let first = choices.first,
@@ -198,7 +305,7 @@ class DeepSeekParseService {
             for (i, item) in arr.enumerated() {
                 guard let word = item["word"] as? String, !word.isEmpty else { continue }
                 let pw = ParsedWord(
-                    id: "\(word)_\(i)",
+                    id: "chunk\(chunkIndex)_\(word)_\(i)",
                     word: word,
                     phonetic: (item["phonetic"] as? String) ?? "",
                     meaningWithRoot: (item["meaningWithRoot"] as? String) ?? (item["meaning"] as? String) ?? "",
