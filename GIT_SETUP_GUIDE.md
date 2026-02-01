@@ -88,14 +88,14 @@ cd /Users/yuhuahuan/code/EHExam
 git remote -v
 
 # 如果使用的是 HTTPS，改为 SSH
-git remote set-url origin git@github.com:你的用户名/EHExam.git
+git remote set-url origin git@github.com:willyuhot/EHExam.git
 ```
 
 如果还没有添加 remote：
 
 ```bash
 cd /Users/yuhuahuan/code/EHExam
-git remote add origin git@github.com:你的用户名/EHExam.git
+git remote add origin git@github.com:willyuhot/EHExam.git
 ```
 
 ### 步骤 8：配置 SSH 自动加载密钥（可选）
@@ -142,7 +142,7 @@ git config --global credential.helper osxkeychain
 cd /Users/yuhuahuan/code/EHExam
 
 # 添加 remote（如果还没有）
-git remote add origin https://github.com/你的用户名/EHExam.git
+git remote add origin https://github.com/willyuhot/EHExam.git
 
 # 执行一次需要认证的操作（如 push）
 git push -u origin main
@@ -178,7 +178,7 @@ git remote -v
 # 将 HTTPS URL 改为 SSH URL
 # 从：https://github.com/用户名/仓库名.git
 # 改为：git@github.com:用户名/仓库名.git
-git remote set-url origin git@github.com:你的用户名/EHExam.git
+git remote set-url origin git@github.com:willyuhot/EHExam.git
 
 # 验证
 git remote -v
