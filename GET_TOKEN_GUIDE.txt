@@ -1,0 +1,21 @@
+📝 获取 GitHub Token 步骤：
+
+1. 浏览器已打开：https://github.com/settings/tokens
+
+2. 点击 "Generate new token" → "Generate new token (classic)"
+
+3. 填写：
+   - Note: GitHub CLI Access（或任意描述）
+   - Expiration: 选择 90 days 或 No expiration
+   - Scopes: 勾选 "repo"（完整仓库访问权限）
+
+4. 点击 "Generate token"
+
+5. 复制生成的 Token（只显示一次！请妥善保存）
+
+6. 然后运行：
+   ./setup_gh_token.sh
+   并粘贴 Token
+
+完成后，就可以使用：
+./download_ipa_simple.sh
