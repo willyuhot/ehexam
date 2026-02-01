@@ -9,96 +9,109 @@ import SwiftUI
 struct AnswerDetailView: View {
     let question: Question
     let correctAnswer: String // 乱序后的正确答案
+    var onSmartParseWord: ((String, String?) -> Void)? = nil
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            // 正确答案（显示乱序后的选项）
+        VStack(alignment: .leading, spacing: AppLayout.spacingM) {
             HStack {
                 Text("正确答案：")
-                    .font(.headline)
+                    .font(AppFont.headline)
                 Text(correctAnswer)
-                    .font(.title3)
+                    .font(AppFont.title3)
                     .fontWeight(.bold)
                     .foregroundColor(.green)
             }
             
             Divider()
-                .padding(.vertical, 4)
+                .padding(.vertical, AppLayout.spacingXS)
             
-            // 译文
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: AppLayout.spacingS) {
                 Text("译文")
-                    .font(.headline)
+                    .font(AppFont.headline)
                     .foregroundColor(.accentColor)
-                Text(question.translation)
-                    .font(.body)
-                    .padding(16)
+                SelectableTextWithMenu(text: question.translation, language: "zh-Hans")
+                    .font(AppFont.body)
+                    .padding(AppLayout.spacingM)
+                    .frame(maxWidth: .infinity, alignment: .leading)
                     .background(Color(.systemGray6))
-                    .cornerRadius(12)
+                    .cornerRadius(AppLayout.cornerRadiusCard)
             }
             
-            // 考点
             if !question.keyPoint.isEmpty {
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: AppLayout.spacingS) {
                     Text("【考点·高效记忆】")
-                        .font(.headline)
+                        .font(AppFont.headline)
                         .foregroundColor(.purple)
-                    Text(question.keyPoint)
-                        .font(.body)
-                        .padding(16)
+                    SelectableTextWithMenu(text: question.keyPoint, language: "zh-Hans")
+                        .font(AppFont.body)
+                        .padding(AppLayout.spacingM)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                         .background(Color.purple.opacity(0.1))
-                        .cornerRadius(12)
+                        .cornerRadius(AppLayout.cornerRadiusCard)
                 }
             }
             
-            // 解析
             if !question.analysis.isEmpty {
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: AppLayout.spacingS) {
                     Text("【解析·秒选思路】")
-                        .font(.headline)
+                        .font(AppFont.headline)
                         .foregroundColor(.orange)
-                    Text(question.analysis)
-                        .font(.body)
-                        .padding(16)
+                    SelectableTextWithMenu(text: question.analysis, language: "zh-Hans")
+                        .font(AppFont.body)
+                        .padding(AppLayout.spacingM)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                         .background(Color.orange.opacity(0.1))
-                        .cornerRadius(12)
+                        .cornerRadius(AppLayout.cornerRadiusCard)
                 }
             }
             
-            // 核心词
             if !question.coreWords.isEmpty {
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: AppLayout.spacingS) {
                     Text("核心词")
-                        .font(.headline)
+                        .font(AppFont.headline)
                         .foregroundColor(.accentColor)
                     
                     ForEach(question.coreWords.indices, id: \.self) { index in
                         let word = question.coreWords[index]
-                        VStack(alignment: .leading, spacing: 4) {
-                            HStack {
-                                Text(word.word)
-                                    .font(.headline)
-                                if !word.phonetic.isEmpty {
-                                    Text(word.phonetic)
-                                        .font(.subheadline)
-                                        .foregroundColor(.secondary)
+                        HStack(alignment: .top, spacing: AppLayout.spacingS) {
+                            VStack(alignment: .leading, spacing: AppLayout.spacingXS) {
+                                HStack {
+                                    Text(word.word)
+                                        .font(AppFont.headline)
+                                    if !word.phonetic.isEmpty {
+                                        Text(word.phonetic)
+                                            .font(AppFont.subheadline)
+                                            .foregroundColor(.secondary)
+                                    }
                                 }
+                                SelectableTextWithMenu(text: word.explanation, language: "zh-Hans")
+                                    .font(AppFont.caption)
+                                    .foregroundColor(.secondary)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
                             }
-                            Text(word.explanation)
-                                .font(.caption)
-                                .foregroundColor(.secondary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            
+                            if let onParse = onSmartParseWord {
+                                Button { onParse(word.word, question.questionText) } label: {
+                                    Image(systemName: "sparkles")
+                                        .font(AppFont.subheadline)
+                                        .foregroundColor(.accentColor)
+                                }
+                                .frame(minWidth: AppLayout.minTouchTarget, minHeight: AppLayout.minTouchTarget)
+                            }
                         }
-                        .padding(.vertical, 4)
+                        .padding(.vertical, AppLayout.spacingXS)
                     }
-                    .padding(16)
+                    .padding(AppLayout.spacingM)
                     .background(Color(.systemGray6))
-                    .cornerRadius(12)
+                    .cornerRadius(AppLayout.cornerRadiusCard)
                 }
             }
         }
-        .padding(16)
+        .padding(AppLayout.spacingM)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color(.systemBackground))
-        .cornerRadius(12)
+        .cornerRadius(AppLayout.cornerRadiusCard)
         .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 2)
     }
 }

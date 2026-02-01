@@ -12,12 +12,16 @@ struct ContentView: View {
     
     var body: some View {
         ZStack {
-            // 背景色填充整个屏幕（包括安全区域外）
             Color(.systemBackground)
-                .ignoresSafeArea(.all, edges: .all)
+                .ignoresSafeArea(edges: .all)
             
-            // 内容在安全区域内
             TabView {
+                HomeView()
+                    .environmentObject(viewModel)
+                    .tabItem {
+                        Label("首页", systemImage: "house.fill")
+                    }
+                
                 QuestionView()
                     .environmentObject(viewModel)
                     .tabItem {
@@ -36,13 +40,21 @@ struct ContentView: View {
                         Label("收藏", systemImage: "star.fill")
                     }
                 
+                WordBookView()
+                    .environmentObject(viewModel)
+                    .tabItem {
+                        Label("单词本", systemImage: "book.closed.fill")
+                    }
+                
                 SettingsView()
                     .environmentObject(viewModel)
                     .tabItem {
                         Label("我们", systemImage: "person.2.fill")
                     }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .accentColor(.blue)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }

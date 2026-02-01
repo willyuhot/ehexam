@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6366f1"/>
+      <stop offset="100%" stop-color="#3b82f6"/>
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="1024" rx="205" fill="url(#bg)"/>
+  <!-- Open book: left page -->
+  <path fill="rgba(255,255,255,0.95)" d="M 256 360 L 256 664 Q 256 720 320 720 L 480 720 Q 512 720 512 688 L 512 336 Q 512 304 480 304 L 320 304 Q 256 304 256 360 Z"/>
+  <!-- Open book: right page -->
+  <path fill="rgba(255,255,255,0.95)" d="M 768 360 L 768 664 Q 768 720 704 720 L 544 720 Q 512 720 512 688 L 512 336 Q 512 304 544 304 L 704 304 Q 768 304 768 360 Z"/>
+  <!-- Spine -->
+  <rect x="496" y="304" width="32" height="416" rx="4" fill="#4f46e5"/>
+  <!-- Sparkle star -->
+  <path fill="#fbbf24" d="M 720 420 L 732 468 L 784 480 L 732 492 L 720 540 L 708 492 L 656 480 L 708 468 Z"/>
+  <path fill="#fef9c3" d="M 720 450 L 726 474 L 752 480 L 726 486 L 720 510 L 714 486 L 688 480 L 714 474 Z"/>
+</svg>

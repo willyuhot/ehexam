@@ -19,7 +19,7 @@ struct SettingsView: View {
     var body: some View {
         NavigationView {
             Form {
-                // 正确率统计
+                // 正确率统计：对xx题 / 错xx题 + 重新计算
                 Section(header: Text("学习统计")) {
                     let correctCount = StorageService.shared.getCorrectCount()
                     let wrongCount = StorageService.shared.getWrongCount()
@@ -31,10 +31,10 @@ struct SettingsView: View {
                             HStack {
                                 Image(systemName: "checkmark.circle.fill")
                                     .foregroundColor(.green)
-                                Text("答对")
+                                Text("对")
                                     .font(.body)
                                 Spacer()
-                                Text("\(correctCount) 次")
+                                Text("\(correctCount) 题")
                                     .font(.body)
                                     .fontWeight(.semibold)
                                     .foregroundColor(.green)
@@ -43,10 +43,10 @@ struct SettingsView: View {
                             HStack {
                                 Image(systemName: "xmark.circle.fill")
                                     .foregroundColor(.red)
-                                Text("答错")
+                                Text("错")
                                     .font(.body)
                                 Spacer()
-                                Text("\(wrongCount) 次")
+                                Text("\(wrongCount) 题")
                                     .font(.body)
                                     .fontWeight(.semibold)
                                     .foregroundColor(.red)
@@ -86,7 +86,7 @@ struct SettingsView: View {
                     }) {
                         HStack {
                             Image(systemName: "arrow.counterclockwise")
-                            Text("重置统计")
+                            Text("重新计算")
                         }
                         .foregroundColor(.orange)
                     }
@@ -172,7 +172,7 @@ struct SettingsView: View {
             }
             .fileImporter(
                 isPresented: $showFilePicker,
-                allowedContentTypes: [.text, .plainText, .data],
+                allowedContentTypes: [.plainText, .text],
                 allowsMultipleSelection: false
             ) { result in
                 handleFileSelection(result)
@@ -199,14 +199,20 @@ struct SettingsView: View {
         isProcessing = true
         processingMessage = "正在读取文件..."
         
-        // 开始访问文件
-        _ = url.startAccessingSecurityScopedResource()
-        defer { url.stopAccessingSecurityScopedResource() }
+        let hasAccess = url.startAccessingSecurityScopedResource()
         
         DispatchQueue.global(qos: .userInitiated).async {
+            defer { if hasAccess { url.stopAccessingSecurityScopedResource() } }
             do {
-                // 读取文件内容
+                // 读取文件内容（仅支持 UTF-8 纯文本；Word .doc/.docx 为二进制，会失败）
                 let fileContent = try String(contentsOf: url, encoding: .utf8)
+                guard !fileContent.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+                    DispatchQueue.main.async {
+                        self.isProcessing = false
+                        self.processingMessage = "文件为空，请选择有内容的 TXT 文件"
+                    }
+                    return
+                }
                 
                 DispatchQueue.main.async {
                     self.processingMessage = "正在解析试卷..."
@@ -215,7 +221,12 @@ struct SettingsView: View {
                 // 调用解析服务
                 ExamParserService.shared.parseExam(
                     content: fileContent,
-                    apiKey: SettingsService.shared.deepSeekAPIKey ?? ""
+                    apiKey: SettingsService.shared.deepSeekAPIKey ?? "",
+                    onProgress: { msg in
+                        DispatchQueue.main.async {
+                            self.processingMessage = msg
+                        }
+                    }
                 ) { questions, error in
                     DispatchQueue.main.async {
                         self.isProcessing = false
@@ -228,7 +239,7 @@ struct SettingsView: View {
                         if let questions = questions, !questions.isEmpty {
                             // 将题目添加到题库
                             self.addQuestionsToBank(questions)
-                            self.processingMessage = "成功解析 \(questions.count) 道题目并添加到题库"
+                            self.processingMessage = "已解析 \(questions.count) 道题并加入题库"
                         } else {
                             self.processingMessage = "未能解析出题目，请检查文件格式"
                         }
@@ -237,7 +248,7 @@ struct SettingsView: View {
             } catch {
                 DispatchQueue.main.async {
                     self.isProcessing = false
-                    self.processingMessage = "读取文件失败: \(error.localizedDescription)"
+                    self.processingMessage = "无法读取为文本。请使用 TXT 格式；Word 文档请先另存为「纯文本」或 .txt"
                 }
             }
         }

@@ -15,11 +15,13 @@ class ExamParserService {
     // DeepSeek API endpoint
     private let apiURL = "https://api.deepseek.com/v1/chat/completions"
     
-    func parseExam(content: String, apiKey: String, completion: @escaping ([Question]?, Error?) -> Void) {
+    func parseExam(content: String, apiKey: String, onProgress: ((String) -> Void)? = nil, completion: @escaping ([Question]?, Error?) -> Void) {
         guard !apiKey.isEmpty else {
             completion(nil, NSError(domain: "ExamParserService", code: -1, userInfo: [NSLocalizedDescriptionKey: "API Key未配置"]))
             return
         }
+        
+        onProgress?("正在连接并解析试卷...")
         
         // 构建prompt
         let prompt = buildPrompt(examContent: content)
@@ -69,10 +71,13 @@ class ExamParserService {
                    let content = message["content"] as? String {
                     
                     // 解析返回的题目
+                    DispatchQueue.main.async { onProgress?("正在解析返回内容...") }
                     let questions = self.parseQuestionsFromResponse(content)
+                    DispatchQueue.main.async { onProgress?("已解析出 \(questions.count) 道题，正在验证...") }
                     
                     // 验证题目
                     let validatedQuestions = self.validateQuestions(questions)
+                    DispatchQueue.main.async { onProgress?("已解析 \(validatedQuestions.count) 道题") }
                     
                     completion(validatedQuestions, nil)
                 } else {

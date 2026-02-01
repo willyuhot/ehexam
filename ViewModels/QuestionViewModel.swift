@@ -21,6 +21,23 @@ enum AnswerResult {
     }
 }
 
+// 学习类型：错题 | 默认题 | 导入的题 | 收藏题
+enum LearningMode: String, CaseIterable {
+    case `default` = "默认的题"
+    case wrong = "错题"
+    case imported = "导入的题"
+    case favorite = "收藏题"
+    
+    var icon: String {
+        switch self {
+        case .default: return "book.fill"
+        case .wrong: return "exclamationmark.triangle.fill"
+        case .imported: return "square.and.arrow.down.fill"
+        case .favorite: return "star.fill"
+        }
+    }
+}
+
 // 选项映射结构：记录原始选项到新选项的映射
 struct OptionMapping {
     let originalToNew: [String: String] // 原始选项 -> 新选项 (如 "A" -> "C")
@@ -40,6 +57,7 @@ class QuestionViewModel: ObservableObject {
     @Published var isTranslating: Bool = false // 翻译中状态
     @Published var isLoading: Bool = true
     @Published var errorMessage: String? = nil
+    @Published var learningMode: LearningMode = .default
     
     // 存储每个题目的选项映射关系
     private var optionMappings: [Int: OptionMapping] = [:]
@@ -103,44 +121,60 @@ class QuestionViewModel: ObservableObject {
     }
     
     init() {
-        // 初始化时清空之前的题目和映射，确保每次都是新的乱序
         questions = []
         optionMappings = [:]
         loadQuestions()
     }
     
+    func setLearningMode(_ mode: LearningMode) {
+        learningMode = mode
+    }
+    
     func loadQuestions() {
+        loadQuestions(mode: learningMode)
+    }
+    
+    func loadQuestions(mode: LearningMode) {
+        learningMode = mode
         isLoading = true
         errorMessage = nil
         
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             guard let self = self else { return }
             
-            // 尝试从Bundle读取，如果失败则尝试从resources文件夹读取
-            var content: String?
-            
-            // 方法1: 从Bundle读取（需要添加到Xcode项目）
+            // 1) 默认题库：Bundle part.txt 或开发环境 resources
+            var baseContent: String?
             if let path = Bundle.main.path(forResource: "part", ofType: "txt") {
-                content = try? String(contentsOfFile: path, encoding: .utf8)
+                baseContent = try? String(contentsOfFile: path, encoding: .utf8)
             }
-            
-            // 方法2: 从resources文件夹读取（开发时使用）
-            if content == nil {
+            if baseContent == nil {
                 let resourcesPath = FileManager.default.currentDirectoryPath + "/resources/part.txt"
                 if FileManager.default.fileExists(atPath: resourcesPath) {
-                    content = try? String(contentsOfFile: resourcesPath, encoding: .utf8)
+                    baseContent = try? String(contentsOfFile: resourcesPath, encoding: .utf8)
                 }
             }
-            
-            // 方法3: 尝试绝对路径
-            if content == nil {
+            if baseContent == nil {
                 let absolutePath = "/Users/yuhuahuan/code/EHExam/resources/part.txt"
                 if FileManager.default.fileExists(atPath: absolutePath) {
-                    content = try? String(contentsOfFile: absolutePath, encoding: .utf8)
+                    baseContent = try? String(contentsOfFile: absolutePath, encoding: .utf8)
                 }
             }
             
-            if let content = content {
+            // 2) 导入题目：Documents/imported_questions.txt（iPhone 上持久化）
+            var importedContent: String?
+            let importedPath = Self.importedQuestionsFilePath
+            if FileManager.default.fileExists(atPath: importedPath) {
+                importedContent = try? String(contentsOfFile: importedPath, encoding: .utf8)
+            }
+            
+            // 3) 合并：默认题库 + 导入题目
+            var content = baseContent ?? ""
+            if let imp = importedContent, !imp.isEmpty {
+                if !content.isEmpty { content += "\n\n" }
+                content += imp
+            }
+            
+            if !content.isEmpty {
                 var parsedQuestions = QuestionParser.parseQuestions(from: content)
                 
                 var mappings: [Int: OptionMapping] = [:]
@@ -171,12 +205,33 @@ class QuestionViewModel: ObservableObject {
                     }
                 }
                 
+                // 按学习类型筛选
+                var filtered = parsedQuestions
+                switch self.learningMode {
+                case .wrong:
+                    let wrongIds = Set(self.storageService.getWrongAnswers())
+                    filtered = parsedQuestions.filter { wrongIds.contains($0.id) }
+                case .favorite:
+                    let favIds = Set(self.storageService.getFavorites())
+                    filtered = parsedQuestions.filter { favIds.contains($0.id) }
+                case .imported:
+                    let importedIds = Set(self.storageService.getImportedQuestionIds())
+                    filtered = parsedQuestions.filter { importedIds.contains($0.id) }
+                case .default:
+                    break
+                }
+                
                 DispatchQueue.main.async {
-                    self.questions = parsedQuestions
+                    self.questions = filtered
                     self.optionMappings = mappings
                     self.isLoading = false
-                    if parsedQuestions.isEmpty {
-                        self.errorMessage = "未能解析到题目，请检查文件格式"
+                    if filtered.isEmpty {
+                        switch self.learningMode {
+                        case .wrong: self.errorMessage = "暂无错题，去做题吧"
+                        case .favorite: self.errorMessage = "暂无收藏，点击题目右上角⭐收藏"
+                        case .imported: self.errorMessage = "暂无导入的题，请在「我们」中上传试卷"
+                        case .default: self.errorMessage = "未能解析到题目，请检查文件格式"
+                        }
                     }
                 }
             } else {
@@ -235,8 +290,10 @@ class QuestionViewModel: ObservableObject {
             let correctAnswer = currentCorrectAnswer ?? question.correctAnswer
             if selected == correctAnswer {
                 storageService.addCorrectAnswer()
+                storageService.addCorrectForQuestion(question.id)
             } else {
                 storageService.addWrongAnswerCount()
+                storageService.addWrongForQuestion(question.id)
             }
             countedQuestionIds.insert(question.id)
         }
@@ -370,67 +427,45 @@ class QuestionViewModel: ObservableObject {
     // MARK: - 添加题目到题库
     
     func addQuestionsToBank(_ questions: [Question]) {
-        // 将新题目追加到现有题目列表
-        var newQuestions = questions
-        
-        // 追加到题目列表
+        let newQuestions = questions
+        StorageService.shared.addImportedQuestionIds(newQuestions.map(\.id))
         DispatchQueue.main.async {
             self.questions.append(contentsOf: newQuestions)
-            // 重新加载以应用乱序设置
             self.loadQuestions()
         }
-        
-        // 保存到文件
         saveQuestionsToFile(newQuestions)
     }
     
+    /// 导入题目保存到 App Documents 目录（iPhone 上 Bundle 只读，必须写这里才能持久化）
+    private static var importedQuestionsFilePath: String {
+        let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+        return dir.appendingPathComponent("imported_questions.txt").path
+    }
+    
     private func saveQuestionsToFile(_ questions: [Question]) {
-        // 将题目追加到part.txt文件
         DispatchQueue.global(qos: .utility).async {
+            let path = Self.importedQuestionsFilePath
             let fileManager = FileManager.default
-            var filePath: String?
             
-            // 尝试找到part.txt文件
-            if let path = Bundle.main.path(forResource: "part", ofType: "txt") {
-                filePath = path
-            } else {
-                let resourcesPath = FileManager.default.currentDirectoryPath + "/resources/part.txt"
-                if fileManager.fileExists(atPath: resourcesPath) {
-                    filePath = resourcesPath
-                } else {
-                    let absolutePath = "/Users/yuhuahuan/code/EHExam/resources/part.txt"
-                    if fileManager.fileExists(atPath: absolutePath) {
-                        filePath = absolutePath
-                    }
-                }
-            }
-            
-            guard let path = filePath else {
-                print("⚠️ 未找到part.txt文件，无法保存题目")
-                return
-            }
-            
-            // 读取现有内容
+            // 读取已有导入内容（若存在）
             var existingContent = ""
-            if let content = try? String(contentsOfFile: path, encoding: .utf8) {
+            if fileManager.fileExists(atPath: path),
+               let content = try? String(contentsOfFile: path, encoding: .utf8) {
                 existingContent = content
             }
             
-            // 格式化新题目
             var newContent = existingContent
             if !newContent.isEmpty && !newContent.hasSuffix("\n\n") {
                 newContent += "\n\n"
             }
-            
             for question in questions {
                 newContent += QuestionFormatter.format(question)
                 newContent += "\n\n"
             }
             
-            // 写入文件
             do {
                 try newContent.write(toFile: path, atomically: true, encoding: .utf8)
-                print("✅ 成功保存 \(questions.count) 道题目到文件")
+                print("✅ 成功保存 \(questions.count) 道题目到 Documents/imported_questions.txt")
             } catch {
                 print("❌ 保存题目失败: \(error.localizedDescription)")
             }
