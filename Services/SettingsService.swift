@@ -11,6 +11,7 @@ import SwiftUI
 class SettingsService: ObservableObject {
     private let shuffleModeKey = "shuffleMode" // true = 乱序, false = 正序
     private let deepSeekAPIKeyKey = "deepSeekAPIKey"
+    private let studyModeKey = "studyMode" // true = 学习模式, false = 考试模式
     
     static let shared: SettingsService = {
         let service = SettingsService()
@@ -24,6 +25,13 @@ class SettingsService: ObservableObject {
         }
     }
     
+    @Published var isStudyMode: Bool {
+        didSet {
+            UserDefaults.standard.set(isStudyMode, forKey: studyModeKey)
+            UserDefaults.standard.synchronize()
+        }
+    }
+    
     private init() {
         // 如果没有设置，默认使用编译时标志
         #if SHUFFLE_ENABLED
@@ -32,6 +40,10 @@ class SettingsService: ObservableObject {
         let defaultValue = UserDefaults.standard.object(forKey: shuffleModeKey) as? Bool ?? false
         #endif
         _isShuffleEnabled = Published(initialValue: defaultValue)
+        
+        // 学习模式默认关闭
+        let studyModeValue = UserDefaults.standard.object(forKey: studyModeKey) as? Bool ?? false
+        _isStudyMode = Published(initialValue: studyModeValue)
     }
     
     // MARK: - DeepSeek API Key

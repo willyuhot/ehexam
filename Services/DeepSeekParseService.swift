@@ -30,6 +30,7 @@ class DeepSeekParseService {
         request.httpMethod = "POST"
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
         request.addValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        request.timeoutInterval = 120 // 2分钟超时
         
         let body: [String: Any] = [
             "model": "deepseek-chat",
@@ -44,6 +45,11 @@ class DeepSeekParseService {
         
         URLSession.shared.dataTask(with: request) { data, response, error in
             if let error = error {
+                let nsError = error as NSError
+                if nsError.code == NSURLErrorTimedOut {
+                    completion(.failure(NSError(domain: "DeepSeekParseService", code: -3, userInfo: [NSLocalizedDescriptionKey: "请求超时，请稍后重试"])))
+                    return
+                }
                 completion(.failure(error))
                 return
             }
@@ -82,6 +88,7 @@ class DeepSeekParseService {
         request.httpMethod = "POST"
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
         request.addValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        request.timeoutInterval = 60 // 1分钟超时
         
         let body: [String: Any] = [
             "model": "deepseek-chat",
@@ -96,6 +103,11 @@ class DeepSeekParseService {
         
         URLSession.shared.dataTask(with: request) { data, response, error in
             if let error = error {
+                let nsError = error as NSError
+                if nsError.code == NSURLErrorTimedOut {
+                    completion(.failure(NSError(domain: "DeepSeekParseService", code: -3, userInfo: [NSLocalizedDescriptionKey: "请求超时，请稍后重试"])))
+                    return
+                }
                 completion(.failure(error))
                 return
             }
@@ -128,7 +140,8 @@ class DeepSeekParseService {
     }
     
     /// 单次请求的文本块大小（字符），避免单次输出超过 max_tokens
-    private let chunkSize = 6000
+    /// 减小块大小以提高响应速度和成功率
+    private let chunkSize = 4000
     
     /// 解析试卷中的超纲词（超出初中范围），返回结构化单词列表
     /// 因 API max_tokens 限制（约 8000），将内容分块多次请求，再合并去重，覆盖所有超纲词
@@ -213,7 +226,7 @@ class DeepSeekParseService {
             let chunk = chunks[idx]
             
             DispatchQueue.main.async {
-                onProgress?("正在分析第 \(idx + 1)/\(chunks.count) 块...")
+                onProgress?("正在分析第 \(idx + 1)/\(chunks.count) 块（共 \(chunks.count) 块，预计需要 \(chunks.count * 2) 分钟）...")
             }
             
             parseSingleChunk(content: chunk, apiKey: apiKey, chunkIndex: idx, totalChunks: chunks.count, onProgress: nil) { result in
@@ -250,11 +263,25 @@ class DeepSeekParseService {
         completion: @escaping (Result<[ParsedWord], Error>) -> Void
     ) {
         let systemPrompt = """
-        你是英语词汇专家，熟悉初中（约1600词）与高中、四级词汇范围。
-        请分析以下文本片段，找出所有「超出初中词汇范围」的单词。
-        对每个超纲词，输出如下 JSON 数组格式，不要输出任何其他文字：
-        [{"word":"单词","phonetic":"/音标/","meaningWithRoot":"释义（词根：xxx）","originalSentence":"试卷中出现的原文句子","translation":"原文的中文译文","memoryTips":"记忆要点"}]
-        要求：word 必填；phonetic 可空；meaningWithRoot 包含释义和词根信息；originalSentence 必须是试卷原文；translation 对原文的翻译；memoryTips 简洁记忆法。
+        你是英语词汇专家，精通中国中小学、高中、大学英语及四六级考试词汇大纲。
+        
+        **任务**：分析以下英语试卷文本，提取所有「超出初中词汇范围」的单词。
+        
+        **初中词汇范围**（约1600词）：指中国初中英语教学大纲要求掌握的基础词汇，如 book, water, happy, important 等日常高频词。
+        
+        **需要提取的超纲词包括**：
+        1. 高中词汇（如 appreciate, significant, consequence）
+        2. 大学英语/四级词汇（如 sophisticated, elaborate, simultaneously）
+        3. 六级及以上词汇（如 scrutinize, exacerbate, unprecedented）
+        4. 学术词汇、专业术语
+        5. 较难的动词短语、固定搭配中的核心词
+        
+        **不要遗漏**：即使是看似简单但实际超出初中范围的词也要提取。宁可多提取，不要遗漏。
+        
+        **输出格式**：仅输出 JSON 数组，不要输出任何解释文字：
+        [{"word":"单词","phonetic":"/音标/","meaningWithRoot":"中文释义（词根：xxx=含义）","originalSentence":"试卷中出现该词的原文句子","translation":"原文句子的中文翻译","memoryTips":"记忆要点/联想记忆法"}]
+        
+        要求：word 必填；phonetic 国际音标；meaningWithRoot 包含词根词缀分析；originalSentence 必须是试卷原文完整句子；memoryTips 简洁实用。
         """
         
         let userPrompt = "请分析以下试卷内容片段，提取所有超出初中词汇范围的单词，按上述 JSON 格式输出：\n\n\(content)"
@@ -263,6 +290,7 @@ class DeepSeekParseService {
         request.httpMethod = "POST"
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
         request.addValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        request.timeoutInterval = 180 // 3分钟超时，大块内容解析需要更长时间
         
         let body: [String: Any] = [
             "model": "deepseek-chat",
@@ -277,6 +305,14 @@ class DeepSeekParseService {
         
         URLSession.shared.dataTask(with: request) { data, response, error in
             if let error = error {
+                let nsError = error as NSError
+                if nsError.code == NSURLErrorTimedOut {
+                    DispatchQueue.main.async {
+                        onProgress?("第 \(chunkIndex + 1)/\(totalChunks) 块解析超时，正在重试...")
+                    }
+                    completion(.failure(NSError(domain: "DeepSeekParseService", code: -4, userInfo: [NSLocalizedDescriptionKey: "解析超时，内容块可能过大，请尝试拆分文件"])))
+                    return
+                }
                 completion(.failure(error))
                 return
             }

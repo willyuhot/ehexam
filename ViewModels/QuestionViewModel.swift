@@ -65,6 +65,11 @@ class QuestionViewModel: ObservableObject {
     // 记录已统计的题目ID，避免重复计数
     private var countedQuestionIds: Set<Int> = []
     
+    // 加载令牌：避免并发加载导致状态错乱、闪退
+    private var loadToken: Int = 0
+    private let loadLock = NSLock()
+    private var hasAttemptedLoad = false
+    
     // 是否启用乱序功能（通过设置服务动态控制）
     private var isShuffleEnabled: Bool {
         return SettingsService.shared.isShuffleEnabled
@@ -123,19 +128,31 @@ class QuestionViewModel: ObservableObject {
     init() {
         questions = []
         optionMappings = [:]
-        loadQuestions()
+        // 不在 init 中加载，避免与首次展示时的加载竞态导致闪退
+        // 首次由 QuestionView.onAppear 或 HomeView 学习类型按钮触发
     }
     
     func setLearningMode(_ mode: LearningMode) {
         learningMode = mode
     }
     
+    /// 首次展示时调用，触发初始加载
+    func ensureLoaded() {
+        guard !hasAttemptedLoad else { return }
+        loadQuestions()
+    }
+    
     func loadQuestions() {
         loadQuestions(mode: learningMode, completion: nil)
     }
     
-    func loadQuestions(mode: LearningMode, completion: (() -> Void)? = nil) {
+    func loadQuestions(mode: LearningMode, completion: ((Bool) -> Void)? = nil) {
         learningMode = mode
+        hasAttemptedLoad = true
+        loadLock.lock()
+        loadToken += 1
+        let myToken = loadToken
+        loadLock.unlock()
         isLoading = true
         errorMessage = nil
         
@@ -218,27 +235,43 @@ class QuestionViewModel: ObservableObject {
                 }
                 
                 DispatchQueue.main.async {
-                    self.questions = filtered
-                    self.optionMappings = mappings
-                    self.currentQuestionIndex = 0  // 重置索引，防止越界崩溃
-                    self.countedQuestionIds.removeAll()  // 切换模式时重置统计
-                    self.resetQuestionStateSync()
-                    self.isLoading = false
-                    if filtered.isEmpty {
-                        switch self.learningMode {
-                        case .wrong: self.errorMessage = "暂无错题，去做题吧"
-                        case .favorite: self.errorMessage = "暂无收藏，点击题目右上角⭐收藏"
-                        case .imported: self.errorMessage = "暂无导入的题，请在「设置」中上传试卷"
-                        case .default: self.errorMessage = "未能解析到题目，请检查文件格式"
+                    self.loadLock.lock()
+                    let isStale = myToken != self.loadToken
+                    self.loadLock.unlock()
+                    if !isStale {
+                        self.questions = filtered
+                        self.optionMappings = mappings
+                        self.currentQuestionIndex = 0
+                        self.countedQuestionIds.removeAll()
+                        self.resetQuestionStateSync()
+                        self.isLoading = false
+                        // 学习模式下自动显示答案
+                        if !filtered.isEmpty {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                self.autoShowAnswerIfStudyMode()
+                            }
+                        }
+                        if filtered.isEmpty {
+                            switch self.learningMode {
+                            case .wrong: self.errorMessage = "暂无错题，去做题吧"
+                            case .favorite: self.errorMessage = "暂无收藏，点击题目右上角⭐收藏"
+                            case .imported: self.errorMessage = "暂无导入的题，请在「设置」中上传试卷"
+                            case .default: self.errorMessage = "未能解析到题目，请检查文件格式"
+                            }
                         }
                     }
-                    completion?()
+                    completion?(!isStale)
                 }
             } else {
                 DispatchQueue.main.async {
-                    self.isLoading = false
-                    self.errorMessage = "无法读取题目文件，请确保part.txt在Resources文件夹中"
-                    completion?()
+                    self.loadLock.lock()
+                    let isStale = myToken != self.loadToken
+                    self.loadLock.unlock()
+                    if !isStale {
+                        self.isLoading = false
+                        self.errorMessage = "无法读取题目文件，请确保part.txt在Resources文件夹中"
+                    }
+                    completion?(true)
                 }
             }
         }
@@ -303,6 +336,19 @@ class QuestionViewModel: ObservableObject {
     func showAnswerDirectly() {
         showAnswer = true
         translateCurrentQuestion()
+    }
+    
+    /// 如果学习模式开启，自动显示答案并选择正确答案
+    func autoShowAnswerIfStudyMode() {
+        guard SettingsService.shared.isStudyMode,
+              let question = currentQuestion else { return }
+        
+        // 自动选择正确答案
+        let correctAnswer = currentCorrectAnswer ?? question.correctAnswer
+        selectedAnswer = correctAnswer
+        
+        // 显示答案和解析
+        showAnswerDirectly()
     }
     
     // 翻译当前题目
@@ -389,6 +435,10 @@ class QuestionViewModel: ObservableObject {
         if canGoPrevious {
             currentQuestionIndex -= 1
             resetQuestionState()
+            // 学习模式下自动显示答案
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                self.autoShowAnswerIfStudyMode()
+            }
         }
     }
     
@@ -396,6 +446,10 @@ class QuestionViewModel: ObservableObject {
         if canGoNext {
             currentQuestionIndex += 1
             resetQuestionState()
+            // 学习模式下自动显示答案
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                self.autoShowAnswerIfStudyMode()
+            }
         }
     }
     
@@ -403,6 +457,10 @@ class QuestionViewModel: ObservableObject {
         guard index >= 0 && index < questions.count else { return }
         currentQuestionIndex = index
         resetQuestionState()
+        // 学习模式下自动显示答案
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            self.autoShowAnswerIfStudyMode()
+        }
     }
     
     private func resetQuestionState() {

@@ -7,6 +7,15 @@
 
 import SwiftUI
 
+// MARK: - Scroll Offset Preference Key
+
+struct ScrollOffsetPreferenceKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = nextValue()
+    }
+}
+
 // MARK: - URL解码辅助函数
 
 // 解码URL编码的辅助函数（处理所有可能的编码格式）
@@ -52,10 +61,15 @@ private func isEnglishText(_ text: String) -> Bool {
 
 struct QuestionView: View {
     @EnvironmentObject var viewModel: QuestionViewModel
+    @Environment(\.dismiss) private var dismiss
+    @ObservedObject private var settings = SettingsService.shared
+    /// 是否以全屏 cover 呈现（从首页进入练习），有返回/导入按钮
+    var isPresentedInCover: Bool = false
     @State private var showAnswerSheet = false
     @State private var showSmartParseSheet = false
     @State private var smartParseContent: String = ""
     @State private var isLoadingSmartParse = false
+    @State private var isScrolledToTop = true
     
     var body: some View {
         GeometryReader { geometry in
@@ -85,129 +99,157 @@ struct QuestionView: View {
                                         .font(AppFont.headline)
                                         .multilineTextAlignment(.center)
                                         .padding(AppLayout.spacingM)
-                                    Button("重新加载") {
-                                        viewModel.loadQuestions()
+                                    if isPresentedInCover {
+                                        HStack(spacing: AppLayout.spacingM) {
+                                            Button {
+                                                dismiss()
+                                            } label: {
+                                                HStack(spacing: 6) {
+                                                    Image(systemName: "chevron.left")
+                                                    Text("返回")
+                                                }
+                                                .frame(maxWidth: .infinity)
+                                                .frame(minHeight: AppLayout.minTouchTarget)
+                                                .background(Color(.systemGray5))
+                                                .foregroundColor(.primary)
+                                                .cornerRadius(AppLayout.cornerRadiusCard)
+                                            }
+                                            if viewModel.learningMode == .imported {
+                                                Button {
+                                                    dismiss()
+                                                    AppNavCoordinator.shared.triggerImportExam()
+                                                } label: {
+                                                    HStack(spacing: 6) {
+                                                        Image(systemName: "square.and.arrow.down")
+                                                        Text("导入")
+                                                    }
+                                                    .frame(maxWidth: .infinity)
+                                                    .frame(minHeight: AppLayout.minTouchTarget)
+                                                    .background(Color.accentColor)
+                                                    .foregroundColor(.white)
+                                                    .cornerRadius(AppLayout.cornerRadiusCard)
+                                                }
+                                            }
+                                        }
+                                        .padding(.horizontal, AppLayout.spacingL)
+                                    } else {
+                                        Button("重新加载") {
+                                            viewModel.loadQuestions()
+                                        }
+                                        .buttonStyle(.borderedProminent)
                                     }
-                                    .buttonStyle(.borderedProminent)
                                 }
                                 .padding(AppLayout.spacingM)
                             } else if let question = viewModel.currentQuestion {
-                                ScrollView(.vertical, showsIndicators: false) {
-                                    VStack(alignment: .leading, spacing: isWide ? AppLayout.spacingXL : AppLayout.spacingL) {
-                                        HStack(spacing: AppLayout.spacingM) {
-                                            AppLogoView(size: isWide ? 64 : 56)
-                                            
-                                            VStack(alignment: .leading, spacing: AppLayout.spacingXS) {
-                                                Text(question.questionNumber)
-                                                    .font(AppFont.title2)
-                                                    .fontWeight(.bold)
-                                                Text("英语考试练习")
-                                                    .font(AppFont.subheadline)
-                                                    .foregroundColor(.secondary)
+                                ScrollViewReader { proxy in
+                                    ScrollView(.vertical, showsIndicators: false) {
+                                        VStack(alignment: .leading, spacing: isWide ? AppLayout.spacingXL : AppLayout.spacingL) {
+                                            // 顶部检测视图
+                                            GeometryReader { geometry in
+                                                Color.clear
+                                                    .preference(key: ScrollOffsetPreferenceKey.self, value: geometry.frame(in: .named("scroll")).minY)
                                             }
+                                            .frame(height: 0)
+                                            .id("top")
                                             
-                                            Spacer()
-                                            
-                                            Button(action: { viewModel.toggleFavorite() }) {
-                                                Image(systemName: viewModel.isFavorite ? "star.fill" : "star")
-                                                    .foregroundColor(viewModel.isFavorite ? .yellow : .secondary)
-                                                    .font(AppFont.title3)
-                                                    .frame(minWidth: AppLayout.minTouchTarget, minHeight: AppLayout.minTouchTarget)
+                                            // 答案结果提示（选择答案后立即显示）
+                                            if let result = viewModel.answerResult {
+                                                AnswerResultView(result: result)
+                                                    .padding(.horizontal, horizontalPad)
+                                                    .transition(.move(edge: .top).combined(with: .opacity))
                                             }
-                                        }
-                                        .padding(.horizontal, horizontalPad)
-                                        .padding(.top, AppLayout.spacingM)
-                                        
-                                        // 答案结果提示（选择答案后立即显示）
-                                        if let result = viewModel.answerResult {
-                                            AnswerResultView(result: result)
-                                                .padding(.horizontal, horizontalPad)
-                                                .transition(.move(edge: .top).combined(with: .opacity))
-                                        }
                                         
                                         // 原题（可选文本 + 长按 收藏/朗读/翻译）
                                         VStack(alignment: .leading, spacing: AppLayout.spacingM) {
                                             HStack {
-                                                Text("原题")
-                                                    .font(AppFont.headline)
-                                                    .foregroundColor(.accentColor)
+                                                // 左边：上一题图标 + 第xx题
+                                                HStack(spacing: AppLayout.spacingS) {
+                                                    Button(action: { viewModel.goToPrevious() }) {
+                                                        Image(systemName: "chevron.left")
+                                                            .font(AppFont.headline)
+                                                            .foregroundColor(viewModel.canGoPrevious ? .accentColor : .secondary)
+                                                    }
+                                                    .frame(minWidth: AppLayout.minTouchTarget, minHeight: AppLayout.minTouchTarget)
+                                                    .disabled(!viewModel.canGoPrevious)
+                                                    
+                                                    Text(question.questionNumber)
+                                                        .font(AppFont.headline)
+                                                        .foregroundColor(.accentColor)
+                                                }
+                                                
                                                 Spacer()
-                                                // 智能解析图标
-                                                Button {
-                                                    let key = SettingsService.shared.deepSeekAPIKey ?? ""
-                                                    guard !key.isEmpty else {
-                                                        smartParseContent = "请在「设置」中配置 DeepSeek API Key"
-                                                        showSmartParseSheet = true
-                                                        return
-                                                    }
-                                                    isLoadingSmartParse = true
-                                                    DeepSeekParseService.shared.requestQuestionParse(
-                                                        question: question,
-                                                        apiKey: key
-                                                    ) { result in
-                                                        DispatchQueue.main.async {
-                                                            isLoadingSmartParse = false
-                                                            switch result {
-                                                            case .success(let text):
-                                                                smartParseContent = text
-                                                                showSmartParseSheet = true
-                                                            case .failure:
-                                                                smartParseContent = "解析失败，请检查 API Key"
-                                                                showSmartParseSheet = true
-                                                            }
-                                                        }
-                                                    }
-                                                } label: {
-                                                    if isLoadingSmartParse {
+                                                
+                                                // 右边：小喇叭 + 解析 + 收藏 + 下一题
+                                                HStack(spacing: 4) {
+                                                    if viewModel.showAnswer && viewModel.isTranslating {
                                                         ProgressView()
                                                             .scaleEffect(0.8)
-                                                    } else {
-                                                        Image(systemName: "sparkles")
+                                                    }
+                                                    Button {
+                                                        SpeechService.shared.speak(decodeURLEncoding(question.questionText), language: "en-US")
+                                                    } label: {
+                                                        Image(systemName: "speaker.wave.2")
                                                             .font(.title3)
                                                             .foregroundColor(.accentColor)
                                                     }
-                                                }
-                                                .frame(minWidth: AppLayout.minTouchTarget, minHeight: AppLayout.minTouchTarget)
-                                                .disabled(isLoadingSmartParse)
-                                                if viewModel.showAnswer && viewModel.isTranslating {
-                                                    ProgressView()
-                                                        .scaleEffect(0.8)
+                                                    .frame(minWidth: AppLayout.minTouchTarget, minHeight: AppLayout.minTouchTarget)
+                                                    .accessibilityLabel("朗读")
+                                                    Button {
+                                                        let key = SettingsService.shared.deepSeekAPIKey ?? ""
+                                                        guard !key.isEmpty else {
+                                                            smartParseContent = "请在「设置」中配置 DeepSeek API Key"
+                                                            showSmartParseSheet = true
+                                                            return
+                                                        }
+                                                        isLoadingSmartParse = true
+                                                        DeepSeekParseService.shared.requestQuestionParse(
+                                                            question: question,
+                                                            apiKey: key
+                                                        ) { result in
+                                                            DispatchQueue.main.async {
+                                                                isLoadingSmartParse = false
+                                                                switch result {
+                                                                case .success(let text):
+                                                                    smartParseContent = text
+                                                                    showSmartParseSheet = true
+                                                                case .failure:
+                                                                    smartParseContent = "解析失败，请检查 API Key"
+                                                                    showSmartParseSheet = true
+                                                                }
+                                                            }
+                                                        }
+                                                    } label: {
+                                                        if isLoadingSmartParse {
+                                                            ProgressView()
+                                                                .scaleEffect(0.8)
+                                                        } else {
+                                                            Image(systemName: "sparkles")
+                                                                .font(.title3)
+                                                                .foregroundColor(.accentColor)
+                                                        }
+                                                    }
+                                                    .frame(minWidth: AppLayout.minTouchTarget, minHeight: AppLayout.minTouchTarget)
+                                                    .disabled(isLoadingSmartParse)
+                                                    Button(action: { viewModel.toggleFavorite() }) {
+                                                        Image(systemName: viewModel.isFavorite ? "star.fill" : "star")
+                                                            .foregroundColor(viewModel.isFavorite ? .yellow : .secondary)
+                                                            .font(.title3)
+                                                    }
+                                                    .frame(minWidth: AppLayout.minTouchTarget, minHeight: AppLayout.minTouchTarget)
+                                                    Button(action: { viewModel.goToNext() }) {
+                                                        Image(systemName: "chevron.right")
+                                                            .font(AppFont.headline)
+                                                            .foregroundColor(viewModel.canGoNext ? .accentColor : .secondary)
+                                                    }
+                                                    .frame(minWidth: AppLayout.minTouchTarget, minHeight: AppLayout.minTouchTarget)
+                                                    .disabled(!viewModel.canGoNext)
                                                 }
                                             }
                                             
                                             VStack(alignment: .leading, spacing: 12) {
                                                 // 可选文本：长按弹出 收藏/朗读/翻译
-                                                SelectableTextWithMenu(text: decodeURLEncoding(question.questionText), language: "en-US")
-                                                    .font(AppFont.body)
-                                                    .lineSpacing(6)
-                                                    .foregroundColor(.primary)
+                                                SelectableTextWithMenu(text: decodeURLEncoding(question.questionText), language: "en-US", showSpeaker: false)
                                                     .frame(maxWidth: .infinity, alignment: .leading)
-                                                
-                                                // 中文翻译（优先显示翻译结果，如果翻译失败则显示原始译文）
-                                                if viewModel.showAnswer {
-                                                    Divider()
-                                                        .padding(.vertical, 4)
-                                                    let translationText: String = {
-                                                        // 优先使用翻译API的结果
-                                                        if let translated = viewModel.translatedQuestion,
-                                                           !translated.isEmpty {
-                                                            let decoded = decodeURLEncoding(translated)
-                                                            if !decoded.isEmpty,
-                                                               decoded != question.questionText,
-                                                               !isEnglishText(decoded) {
-                                                                return decoded
-                                                            }
-                                                        }
-                                                        // 如果翻译失败或返回英文，使用原始译文
-                                                        return decodeURLEncoding(question.translation)
-                                                    }()
-                                                    
-                                                    Text(translationText)
-                                                        .font(AppFont.body)
-                                                        .lineSpacing(6)
-                                                        .foregroundColor(.secondary)
-                                                        .padding(.top, AppLayout.spacingXS)
-                                                }
                                             }
                                             .padding(AppLayout.spacingM)
                                             .frame(maxWidth: .infinity, alignment: .leading)
@@ -377,50 +419,91 @@ struct QuestionView: View {
                                     }
                                     .padding(.top, AppLayout.spacingS)
                                     .padding(.bottom, AppLayout.spacingL)
-                }
-                .frame(maxWidth: .infinity)
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .principal) {
-                        HStack(spacing: AppLayout.spacingS) {
-                            AppLogoView(size: 28)
-                            Text("EHExam")
-                                .font(AppFont.headline)
-                                .foregroundColor(.primary)
+                                    .coordinateSpace(name: "scroll")
+                                    .onPreferenceChange(ScrollOffsetPreferenceKey.self) { value in
+                                        // 当滚动到顶部附近（小于10）时，认为在顶部
+                                        isScrolledToTop = value <= 10
+                                    }
+                                    .onAppear {
+                                        isScrolledToTop = true
+                                    }
+                                }
+                            }
                         }
-                    }
-                }
-                .sheet(isPresented: $showSmartParseSheet) {
-                    NavigationView {
-                        ScrollView {
-                            Text(smartParseContent)
-                                .font(.body)
-                                .padding()
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                        }
-                        .navigationTitle("智能解析")
+                        .frame(maxWidth: .infinity)
                         .navigationBarTitleDisplayMode(.inline)
                         .toolbar {
-                            ToolbarItem(placement: .cancellationAction) {
-                                Button("关闭") { showSmartParseSheet = false }
+                            ToolbarItem(placement: .navigationBarLeading) {
+                                Button {
+                                    dismiss()
+                                } label: {
+                                    HStack(spacing: 4) {
+                                        Image(systemName: "chevron.left")
+                                        Text("返回")
+                                    }
+                                    .foregroundColor(.accentColor)
+                                }
+                                .opacity(isScrolledToTop ? 1 : 0)
+                                .allowsHitTesting(isScrolledToTop)
+                                .accessibilityHidden(!isScrolledToTop)
                             }
                         }
-                    }
-                }
-            } else {
-                                Text("暂无题目")
-                                    .font(.title2)
-                                    .foregroundColor(.gray)
+                        .sheet(isPresented: $showSmartParseSheet) {
+                            NavigationView {
+                                ScrollView {
+                                    Text(smartParseContent)
+                                        .font(.body)
+                                        .padding()
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                }
+                                .navigationTitle("智能解析")
+                                .navigationBarTitleDisplayMode(.inline)
+                                .toolbar {
+                                    ToolbarItem(placement: .cancellationAction) {
+                                        Button("关闭") { showSmartParseSheet = false }
+                                    }
+                                }
                             }
+                        }
+                    } else {
+                        Text("暂无题目")
+                            .font(.title2)
+                            .foregroundColor(.gray)
+                    }
                         }
                     }
                 }
                 .navigationViewStyle(StackNavigationViewStyle())
             }
         }
+        .onAppear {
+            viewModel.ensureLoaded()
+            // 学习模式下自动显示答案
+            if settings.isStudyMode, viewModel.currentQuestion != nil {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                    viewModel.autoShowAnswerIfStudyMode()
+                }
+            }
+        }
+        .onChange(of: viewModel.currentQuestionIndex) { _ in
+            // 当题目索引变化时，学习模式下自动显示答案
+            if settings.isStudyMode {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    viewModel.autoShowAnswerIfStudyMode()
+                }
+            }
+        }
+        .onChange(of: settings.isStudyMode) { isEnabled in
+            // 当学习模式切换时，如果开启则自动显示答案
+            if isEnabled, viewModel.currentQuestion != nil {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    viewModel.autoShowAnswerIfStudyMode()
+                }
+            }
+        }
     }
-    
-    struct OptionButton: View {
+
+struct OptionButton: View {
         let optionKey: String
         let optionText: String
         let isSelected: Bool
@@ -607,6 +690,4 @@ struct QuestionView: View {
             )
         }
     }
-    
-}
 

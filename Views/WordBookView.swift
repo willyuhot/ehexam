@@ -157,41 +157,38 @@ struct WordBookRow: View {
     
     var body: some View {
         Button(action: { onTap?() }) {
-            HStack(alignment: .top, spacing: AppLayout.spacingM) {
-                VStack(alignment: .leading, spacing: AppLayout.spacingXS) {
-                    HStack(spacing: AppLayout.spacingS) {
-                        Text(word)
-                            .font(AppFont.headline)
-                            .foregroundColor(.primary)
-                        if !phonetic.isEmpty {
-                            Text(phonetic)
-                                .font(AppFont.subheadline)
-                                .foregroundColor(.secondary)
-                        }
-                        if isFromVocab {
-                            Image(systemName: "star.fill")
-                                .font(AppFont.caption)
-                                .foregroundColor(.yellow)
-                        }
-                    }
-                    if !explanation.isEmpty {
-                        Text(explanation)
-                            .font(AppFont.caption)
+            VStack(alignment: .leading, spacing: AppLayout.spacingXS) {
+                HStack(spacing: AppLayout.spacingS) {
+                    Text(word)
+                        .font(AppFont.headline)
+                        .foregroundColor(.primary)
+                    if !phonetic.isEmpty {
+                        Text(phonetic)
+                            .font(AppFont.subheadline)
                             .foregroundColor(.secondary)
-                            .lineLimit(3)
                     }
+                    if isFromVocab {
+                        Image(systemName: "star.fill")
+                            .font(AppFont.caption)
+                            .foregroundColor(.yellow)
+                    }
+                    Spacer()
+                    Button {
+                        SpeechService.shared.speak(word, language: "en-US")
+                    } label: {
+                        Image(systemName: "speaker.wave.2.fill")
+                            .font(AppFont.title3)
+                            .foregroundColor(.accentColor)
+                    }
+                    .frame(minWidth: AppLayout.minTouchTarget, minHeight: AppLayout.minTouchTarget)
+                    .buttonStyle(.plain)
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                
-                Button {
-                    SpeechService.shared.speak(word, language: "en-US")
-                } label: {
-                    Image(systemName: "speaker.wave.2.fill")
-                        .font(AppFont.title3)
-                        .foregroundColor(.accentColor)
-                        .frame(minWidth: AppLayout.minTouchTarget, minHeight: AppLayout.minTouchTarget)
+                if !explanation.isEmpty {
+                    SelectableTextWithMenu(text: explanation, language: "zh-Hans", showSpeaker: false)
+                        .font(AppFont.caption)
+                        .foregroundColor(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                 }
-                .buttonStyle(.plain)
             }
             .padding(.vertical, AppLayout.spacingS)
         }

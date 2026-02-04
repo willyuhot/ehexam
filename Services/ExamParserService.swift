@@ -21,7 +21,16 @@ class ExamParserService {
             return
         }
         
-        onProgress?("正在连接并解析试卷...")
+        onProgress?("正在连接 API 服务器...")
+        
+        // 估算内容大小，给出预计时间提示
+        let contentSize = content.count
+        let estimatedMinutes = max(1, contentSize / 5000) // 大约每5000字符需要1分钟
+        if estimatedMinutes > 2 {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                onProgress?("试卷较大（约\(contentSize)字符），预计需要 \(estimatedMinutes)-\(estimatedMinutes + 1) 分钟，请耐心等待...")
+            }
+        }
         
         // 构建prompt
         let prompt = buildPrompt(examContent: content)
@@ -31,6 +40,7 @@ class ExamParserService {
         request.httpMethod = "POST"
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
         request.addValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        request.timeoutInterval = 180 // 3分钟超时，大文件解析需要更长时间
         
         let requestBody: [String: Any] = [
             "model": "deepseek-chat",
@@ -52,6 +62,17 @@ class ExamParserService {
         
         // 发送请求
         URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                let nsError = error as NSError
+                if nsError.code == NSURLErrorTimedOut {
+                    DispatchQueue.main.async {
+                        completion(nil, NSError(domain: "ExamParserService", code: -4, userInfo: [NSLocalizedDescriptionKey: "请求超时，试卷内容可能过大，请尝试拆分文件或稍后重试"]))
+                    }
+                    return
+                }
+                completion(nil, error)
+                return
+            }
             if let error = error {
                 completion(nil, error)
                 return

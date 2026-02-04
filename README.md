@@ -104,8 +104,8 @@ xcrun devicectl device install app --device <设备UDID> "$APP_PATH"
 ## 构建提示词
 ```
 帮我将本项目中的垃圾文件进行清理，并同步更新readme.md文件。
-然后使用xcodebuild 来构建，如果构建有问题请修复代码，
-构建成功后将代码推送到git，还要推送到手机上。
+使用xcodebuild 来构建，如果构建有问题请修复代码，
+构建成功后将代码推送到git，还要推送到YPhone手机上。
 ```
 
 

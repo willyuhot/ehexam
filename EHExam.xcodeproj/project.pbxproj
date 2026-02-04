@@ -26,6 +26,7 @@
 		BF0010300000000000000001 /* SpeechService.swift in Sources */ = {isa = PBXBuildFile; fileRef = RF0010300000000000000001 /* SpeechService.swift */; };
 		BF0010310000000000000001 /* DeepSeekParseService.swift in Sources */ = {isa = PBXBuildFile; fileRef = RF0010310000000000000001 /* DeepSeekParseService.swift */; };
 		BF00103E0000000000000001 /* ProcessingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = RF00103E0000000000000001 /* ProcessingService.swift */; };
+		BF00103F0000000000000001 /* AppNavCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = RF00103F0000000000000001 /* AppNavCoordinator.swift */; };
 		BF0010320000000000000001 /* SelectableTextWithMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = RF0010320000000000000001 /* SelectableTextWithMenu.swift */; };
 		BF0010330000000000000001 /* WordBookView.swift in Sources */ = {isa = PBXBuildFile; fileRef = RF0010330000000000000001 /* WordBookView.swift */; };
 		BF0010380000000000000001 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = RF0010380000000000000001 /* HomeView.swift */; };
@@ -53,6 +54,7 @@
 		BF0010340000000000000002 /* SpeechService.swift in Sources */ = {isa = PBXBuildFile; fileRef = RF0010300000000000000001 /* SpeechService.swift */; };
 		BF0010350000000000000002 /* DeepSeekParseService.swift in Sources */ = {isa = PBXBuildFile; fileRef = RF0010310000000000000001 /* DeepSeekParseService.swift */; };
 		BF00103E0000000000000002 /* ProcessingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = RF00103E0000000000000001 /* ProcessingService.swift */; };
+		BF00103F0000000000000002 /* AppNavCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = RF00103F0000000000000001 /* AppNavCoordinator.swift */; };
 		BF0010360000000000000002 /* SelectableTextWithMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = RF0010320000000000000001 /* SelectableTextWithMenu.swift */; };
 		BF0010370000000000000002 /* WordBookView.swift in Sources */ = {isa = PBXBuildFile; fileRef = RF0010330000000000000001 /* WordBookView.swift */; };
 		BF0010390000000000000002 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = RF0010380000000000000001 /* HomeView.swift */; };
@@ -85,6 +87,7 @@
 		RF0010300000000000000001 /* SpeechService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechService.swift; sourceTree = "<group>"; };
 		RF0010310000000000000001 /* DeepSeekParseService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepSeekParseService.swift; sourceTree = "<group>"; };
 		RF00103E0000000000000001 /* ProcessingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessingService.swift; sourceTree = "<group>"; };
+		RF00103F0000000000000001 /* AppNavCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppNavCoordinator.swift; sourceTree = "<group>"; };
 		RF0010320000000000000001 /* SelectableTextWithMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectableTextWithMenu.swift; sourceTree = "<group>"; };
 		RF0010330000000000000001 /* WordBookView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WordBookView.swift; sourceTree = "<group>"; };
 		RF0010380000000000000001 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
@@ -149,6 +152,7 @@
 				RF0010300000000000000001 /* SpeechService.swift */,
 				RF0010310000000000000001 /* DeepSeekParseService.swift */,
 				RF00103E0000000000000001 /* ProcessingService.swift */,
+				RF00103F0000000000000001 /* AppNavCoordinator.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -309,6 +313,7 @@
 				BF0010300000000000000001 /* SpeechService.swift in Sources */,
 				BF0010310000000000000001 /* DeepSeekParseService.swift in Sources */,
 				BF00103E0000000000000001 /* ProcessingService.swift in Sources */,
+				BF00103F0000000000000001 /* AppNavCoordinator.swift in Sources */,
 				BF0010320000000000000001 /* SelectableTextWithMenu.swift in Sources */,
 				BF0010330000000000000001 /* WordBookView.swift in Sources */,
 				BF0010380000000000000001 /* HomeView.swift in Sources */,
@@ -341,6 +346,7 @@
 				BF0010340000000000000002 /* SpeechService.swift in Sources */,
 				BF0010350000000000000002 /* DeepSeekParseService.swift in Sources */,
 				BF00103E0000000000000002 /* ProcessingService.swift in Sources */,
+				BF00103F0000000000000002 /* AppNavCoordinator.swift in Sources */,
 				BF0010360000000000000002 /* SelectableTextWithMenu.swift in Sources */,
 				BF0010370000000000000002 /* WordBookView.swift in Sources */,
 				BF0010390000000000000002 /* HomeView.swift in Sources */,

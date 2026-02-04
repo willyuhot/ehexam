@@ -66,65 +66,80 @@ struct CustomWordBookRow: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: AppLayout.spacingS) {
-            HStack(alignment: .top, spacing: AppLayout.spacingM) {
-                VStack(alignment: .leading, spacing: AppLayout.spacingXS) {
-                    HStack(spacing: AppLayout.spacingS) {
-                        Text(parsedWord.word)
-                            .font(AppFont.headline)
-                            .foregroundColor(.primary)
-                        if !parsedWord.phonetic.isEmpty {
-                            Text(parsedWord.phonetic)
-                                .font(AppFont.subheadline)
-                                .foregroundColor(.secondary)
-                        }
-                        Spacer()
-                        Button {
-                            SpeechService.shared.speak(parsedWord.word, language: "en-US")
-                        } label: {
-                            Image(systemName: "speaker.wave.2.fill")
-                                .font(AppFont.title3)
-                                .foregroundColor(.accentColor)
-                                .frame(minWidth: AppLayout.minTouchTarget, minHeight: AppLayout.minTouchTarget)
-                        }
-                        .buttonStyle(.plain)
-                    }
-                    if !parsedWord.meaningWithRoot.isEmpty {
-                        Text(parsedWord.meaningWithRoot)
+            VStack(alignment: .leading, spacing: AppLayout.spacingXS) {
+                HStack(spacing: AppLayout.spacingS) {
+                    Text(parsedWord.word)
+                        .font(AppFont.headline)
+                        .foregroundColor(.primary)
+                    if !parsedWord.phonetic.isEmpty {
+                        Text(parsedWord.phonetic)
                             .font(AppFont.subheadline)
                             .foregroundColor(.secondary)
                     }
+                    Spacer()
+                    Button {
+                        SpeechService.shared.speak(parsedWord.word, language: "en-US")
+                    } label: {
+                        Image(systemName: "speaker.wave.2.fill")
+                            .font(AppFont.title3)
+                            .foregroundColor(.accentColor)
+                    }
+                    .frame(minWidth: AppLayout.minTouchTarget, minHeight: AppLayout.minTouchTarget)
+                    .buttonStyle(.plain)
+                }
+                if !parsedWord.meaningWithRoot.isEmpty {
+                    SelectableTextWithMenu(text: parsedWord.meaningWithRoot, language: "zh-Hans", showSpeaker: false)
+                        .font(AppFont.subheadline)
+                        .foregroundColor(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                 }
             }
             
             if !parsedWord.originalSentence.isEmpty {
-                HStack(alignment: .top, spacing: AppLayout.spacingXS) {
-                    Text("原文：")
-                        .font(AppFont.caption)
-                        .foregroundColor(.secondary)
-                    Text(parsedWord.originalSentence)
+                VStack(alignment: .leading, spacing: AppLayout.spacingXS) {
+                    HStack {
+                        Text("原文：")
+                            .font(AppFont.caption)
+                            .foregroundColor(.secondary)
+                        Spacer()
+                        Button {
+                            SpeechService.shared.speak(parsedWord.originalSentence, language: "en-US")
+                        } label: {
+                            Image(systemName: "speaker.wave.2.fill")
+                                .font(AppFont.caption)
+                                .foregroundColor(.accentColor)
+                        }
+                        .frame(minWidth: AppLayout.minTouchTarget, minHeight: AppLayout.minTouchTarget)
+                        .buttonStyle(.plain)
+                    }
+                    SelectableTextWithMenu(text: parsedWord.originalSentence, language: "en-US", showSpeaker: false)
                         .font(AppFont.caption)
                         .foregroundColor(.primary)
-                        .lineLimit(2)
-                    Button {
-                        SpeechService.shared.speak(parsedWord.originalSentence, language: "en-US")
-                    } label: {
-                        Image(systemName: "speaker.wave.2.fill")
-                            .font(AppFont.caption)
-                            .foregroundColor(.accentColor)
-                    }
-                    .buttonStyle(.plain)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                 }
             }
             
             if !parsedWord.translation.isEmpty {
-                HStack(alignment: .top, spacing: AppLayout.spacingXS) {
-                    Text("译文：")
-                        .font(AppFont.caption)
-                        .foregroundColor(.secondary)
-                    Text(parsedWord.translation)
+                VStack(alignment: .leading, spacing: AppLayout.spacingXS) {
+                    HStack {
+                        Text("译文：")
+                            .font(AppFont.caption)
+                            .foregroundColor(.secondary)
+                        Spacer()
+                        Button {
+                            SpeechService.shared.speak(parsedWord.translation, language: "zh-Hans")
+                        } label: {
+                            Image(systemName: "speaker.wave.2.fill")
+                                .font(AppFont.caption)
+                                .foregroundColor(.accentColor)
+                        }
+                        .frame(minWidth: AppLayout.minTouchTarget, minHeight: AppLayout.minTouchTarget)
+                        .buttonStyle(.plain)
+                    }
+                    SelectableTextWithMenu(text: parsedWord.translation, language: "zh-Hans", showSpeaker: false)
                         .font(AppFont.caption)
                         .foregroundColor(.primary)
-                        .lineLimit(2)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                 }
             }
             
@@ -133,10 +148,10 @@ struct CustomWordBookRow: View {
                     Text("记忆要点：")
                         .font(AppFont.caption)
                         .foregroundColor(.secondary)
-                    Text(parsedWord.memoryTips)
+                    SelectableTextWithMenu(text: parsedWord.memoryTips, language: "zh-Hans", showSpeaker: false)
                         .font(AppFont.caption)
                         .foregroundColor(.primary)
-                        .lineLimit(3)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                 }
             }
         }

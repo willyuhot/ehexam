@@ -12,6 +12,7 @@ struct HomeView: View {
     @State private var selectedDayStats: StorageService.DailyStats?
     @State private var showPractice: Bool = false
     @State private var practiceMode: LearningMode = .default
+    @State private var isStartingPractice: Bool = false
     
     /// 今日起往前 7 天（今天 + 6 天前），每天都可选
     private var recentDays: [StorageService.DailyStats] {
@@ -42,8 +43,7 @@ struct HomeView: View {
                 .navigationTitle("首页")
                 .navigationBarTitleDisplayMode(.large)
                 .fullScreenCover(isPresented: $showPractice) {
-                    QuestionView()
-                        .environmentObject(viewModel)
+                    PracticeContainerView(viewModel: viewModel)
                 }
             }
         }
@@ -130,11 +130,15 @@ struct HomeView: View {
             VStack(spacing: AppLayout.spacingM) {
                 ForEach(LearningMode.allCases, id: \.rawValue) { mode in
                     Button {
+                        guard !isStartingPractice else { return }
+                        isStartingPractice = true
                         practiceMode = mode
                         viewModel.setLearningMode(mode)
-                        viewModel.loadQuestions(mode: mode) {
-                            // 等 loadQuestions 完成后再展示，避免闪退
-                            showPractice = true
+                        viewModel.loadQuestions(mode: mode) { applied in
+                            DispatchQueue.main.async {
+                                isStartingPractice = false
+                                if applied { showPractice = true }
+                            }
                         }
                     } label: {
                         HStack(spacing: AppLayout.spacingM) {
@@ -166,6 +170,7 @@ struct HomeView: View {
                         .cornerRadius(AppLayout.cornerRadiusCard)
                     }
                     .buttonStyle(.plain)
+                    .disabled(isStartingPractice)
                 }
             }
         }
@@ -342,5 +347,15 @@ struct DayDetailInline: View {
                 .fontWeight(.semibold)
         }
         .padding(.vertical, AppLayout.spacingXS)
+    }
+}
+
+// 练习页容器：显式传入 viewModel，避免 fullScreenCover 内 @EnvironmentObject 传递失败导致闪退
+private struct PracticeContainerView: View {
+    @ObservedObject var viewModel: QuestionViewModel
+    
+    var body: some View {
+        QuestionView(isPresentedInCover: true)
+            .environmentObject(viewModel)
     }
 }

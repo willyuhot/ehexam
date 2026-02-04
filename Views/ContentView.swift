@@ -7,9 +7,72 @@
 
 import SwiftUI
 
+/// 我的 tab：单词本、自定义单词本、设置；支持从「导入的题」空状态跳转并自动打开试卷导入
+private struct MineTabView: View {
+    @ObservedObject var viewModel: QuestionViewModel
+    @Binding var selectedTab: Int
+    @State private var navigateToSettingsWithImport = false
+    @State private var refreshSeed = 0
+    
+    /// 单词本总数 = 题目核心词 + 收藏的单词（与 WordBookView 逻辑一致）
+    private var wordBookCount: Int {
+        let _ = refreshSeed
+        var coreSet = Set<String>()
+        for q in viewModel.questions {
+            for c in q.coreWords {
+                coreSet.insert(c.word.lowercased())
+            }
+        }
+        let vocabWords = StorageService.shared.getVocabularyWords()
+        let vocabOnly = vocabWords.filter { !coreSet.contains($0.lowercased()) }
+        return coreSet.count + vocabOnly.count
+    }
+    
+    var body: some View {
+        NavigationView {
+            List {
+                NavigationLink(destination: WordBookView().environmentObject(viewModel)) {
+                    HStack {
+                        Label("单词本", systemImage: "book.closed.fill")
+                        Spacer()
+                        Text("(\(wordBookCount))")
+                            .foregroundColor(.secondary)
+                            .font(.subheadline)
+                    }
+                }
+                NavigationLink(destination: CustomWordBookView().environmentObject(viewModel)) {
+                    HStack {
+                        Label("自定义单词本", systemImage: "text.book.closed.fill")
+                        Spacer()
+                        Text("(\(StorageService.shared.getParsedWords().count))")
+                            .foregroundColor(.secondary)
+                            .font(.subheadline)
+                    }
+                }
+                NavigationLink(
+                    destination: SettingsView().environmentObject(viewModel),
+                    isActive: $navigateToSettingsWithImport
+                ) {
+                    Label("设置", systemImage: "gearshape.fill")
+                }
+            }
+            .navigationTitle("我的")
+            .navigationBarTitleDisplayMode(.large)
+            .onAppear {
+                refreshSeed += 1
+                viewModel.ensureLoaded() // 确保题目已加载，以便正确统计核心词数量
+                if AppNavCoordinator.shared.consumeImportExamTrigger() {
+                    navigateToSettingsWithImport = true
+                }
+            }
+        }
+    }
+}
+
 struct ContentView: View {
     @StateObject private var viewModel = QuestionViewModel()
     @ObservedObject private var processing = ProcessingService.shared
+    @ObservedObject private var navCoordinator = AppNavCoordinator.shared
     @State private var selectedTab = 0
     
     var body: some View {
@@ -25,12 +88,18 @@ struct ContentView: View {
                     }
                     .tag(0)
                 
-                ExamTabContent()
-                    .environmentObject(viewModel)
-                    .tabItem {
-                        Label("考试", systemImage: "book.fill")
+                Group {
+                    if selectedTab == 1 {
+                        QuestionView()
+                            .environmentObject(viewModel)
+                    } else {
+                        Color(.systemGroupedBackground)
                     }
-                    .tag(1)
+                }
+                .tabItem {
+                    Label("考试", systemImage: "book.fill")
+                }
+                .tag(1)
                 
                 WrongAnswerBookView()
                     .environmentObject(viewModel)
@@ -46,21 +115,7 @@ struct ContentView: View {
                     }
                     .tag(3)
                 
-                NavigationView {
-                    List {
-                        NavigationLink(destination: WordBookView().environmentObject(viewModel)) {
-                            Label("单词本", systemImage: "book.closed.fill")
-                        }
-                        NavigationLink(destination: CustomWordBookView().environmentObject(viewModel)) {
-                            Label("自定义单词本", systemImage: "text.book.closed.fill")
-                        }
-                        NavigationLink(destination: SettingsView().environmentObject(viewModel)) {
-                            Label("设置", systemImage: "gearshape.fill")
-                        }
-                    }
-                    .navigationTitle("我的")
-                    .navigationBarTitleDisplayMode(.large)
-                }
+                MineTabView(viewModel: viewModel, selectedTab: $selectedTab)
                 .environmentObject(viewModel)
                 .tabItem {
                     Label("我的", systemImage: "person.fill")
@@ -69,6 +124,9 @@ struct ContentView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .accentColor(.blue)
+            .onChange(of: navCoordinator.openSettingsAndImportExam) { newValue in
+                if newValue { selectedTab = 4 }
+            }
             
             // 全局解析进度条：切到其他页面仍显示，任务在后台继续
             if processing.isProcessing {
@@ -97,28 +155,6 @@ struct ContentView: View {
             }
         } message: {
             Text(processing.completionMessage)
-        }
-    }
-}
-
-// 考试 tab 专用包装，延迟创建 QuestionView 避免切换 tab 时闪退
-private struct ExamTabContent: View {
-    @EnvironmentObject var viewModel: QuestionViewModel
-    @State private var isReady = false
-    
-    var body: some View {
-        Group {
-            if isReady {
-                QuestionView()
-            } else {
-                ProgressView("加载中...")
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-            }
-        }
-        .onAppear {
-            DispatchQueue.main.async {
-                isReady = true
-            }
         }
     }
 }

@@ -98,6 +98,21 @@ struct SettingsView: View {
                     }
                 }
                 
+                // 学习模式切换
+                Section(header: Text("学习模式")) {
+                    Toggle(isOn: $settings.isStudyMode) {
+                        HStack {
+                            Image(systemName: settings.isStudyMode ? "book.fill" : "book")
+                                .foregroundColor(.purple)
+                            Text("学习模式")
+                        }
+                    }
+                    
+                    Text(settings.isStudyMode ? "直接显示答案和解析，适合快速学习" : "需要选择答案后才能查看解析")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                
                 // 正序/乱序模式切换
                 Section(header: Text("考试模式")) {
                     Toggle(isOn: Binding(
@@ -188,6 +203,13 @@ struct SettingsView: View {
             .navigationTitle("设置")
             .onAppear {
                 apiKey = settings.deepSeekAPIKey ?? ""
+                if AppNavCoordinator.shared.consumeExamImportOnAppear(),
+                   settings.hasDeepSeekAPIKey, !processing.isProcessing {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                        filePickMode = .exam
+                        showFilePicker = true
+                    }
+                }
             }
             .fileImporter(
                 isPresented: $showFilePicker,
